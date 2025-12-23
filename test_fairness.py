@@ -81,20 +81,37 @@ def main():
 
 
 
-        for name in ['DC','DM']:
+
+        for name in ['DC','DM','IDC', 'Random','full']:
             args.testMetric = name
             for ipc in [10, 50,100]:
+                if name == 'full':
+                    if ipc in [50,100]: continue
+
                 args.ipc = ipc
 
+                if name == 'Random':
+                    image_syn = torch.randn(size=(num_classes*args.ipc, channel, im_size[0], im_size[1]), dtype=torch.float, requires_grad=True, device=args.device)
+                    label_syn = torch.tensor([np.ones(args.ipc)*i for i in range(num_classes)], dtype=torch.long, requires_grad=False, device=args.device).view(-1) # [0,0,0, 1,1,1, ..., 9,9,9]
+                    for c in range(num_classes):
+                        image_data, _, color_data = get_images(c, args.ipc)
+                        image_syn.data[c * args.ipc:(c + 1) * args.ipc] = image_data.detach().data
 
-        
-                save_path = '/home/mmoslem3/scratch/FairDD/results/'+args.testMetric+'_' + args.dataset + '_ipc'  + str(args.ipc) +'/res_'+args.testMetric+'_' + args.dataset + '_ConvNet_'+str(args.ipc)+'ipc.pt' # Your file path
-                # 
+                elif name == 'full':
+                    image_syn = copy.deepcopy(images_all)
+                    label_syn = copy.deepcopy(labels_all)
+                    args.num_eval = 5
 
+                
+                else:
+                    save_path = '/home/mmoslem3/scratch/FairDD/results/'+args.testMetric+'_' + args.dataset + '_ipc'  + str(args.ipc) +'/res_'+args.testMetric+'_' + args.dataset + '_ConvNet_'+str(args.ipc)+'ipc.pt' # Your file path
+                    checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
+                    data_list = checkpoint['data']
 
-                checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
-                data_list = checkpoint['data']
-                image_syn, label_syn = data_list[0]
+                    if name == 'IDC':
+                        image_syn, label_syn = data_list
+                    else:
+                        image_syn, label_syn = data_list[0]
 
                 image_syn = image_syn.to(args.device)
                 label_syn = label_syn.to(args.device)
@@ -102,7 +119,7 @@ def main():
 
                 ''' Evaluate synthetic data '''
                 for model_eval in model_eval_pool:
-                    # print('-------------------------\nEvaluation\nmodel_train = %s, model_eval = %s'%(args.model, model_eval))
+                    print('-------------------------\nEvaluation\nmodel_train = %s, model_eval = %s'%(args.model, model_eval))
 
                     args.dc_aug_param = get_daparam(args.dataset, args.model, model_eval, args.ipc) # This augmentation parameter set is only for DC method. It will be muted when args.dsa is True.
                     # print('DC augmentation parameters: \n', args.dc_aug_param)

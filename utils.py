@@ -546,8 +546,8 @@ def evaluate_synset(it_eval, net, images_train, labels_train, testloader, args):
     acc_test, max_Equalized_Odds, mean_Equalized_Odds = round(acc_test * 100, 2), round(max_Equalized_Odds * 100, 2), round(mean_Equalized_Odds * 100, 2)
     max_Sufficiency, mean_Sufficiency = round(max_Sufficiency * 100, 2), round(mean_Sufficiency * 100, 2)
 
-    # print('%s Evaluate_%02d: epoch = %04d train time = %d s train loss = %.6f train acc = %.2f, test acc = %.2f, max_Equalized_Odds = %.2f, mean_Equalized_Odds = %.2f' % (get_time(), it_eval, Epoch, int(time_train), loss_train, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds))
-    # print('max_Sufficiency = %.2f, mean_Sufficiency = %.2f' % (max_Sufficiency, mean_Sufficiency))
+    print('%s Evaluate_%02d: epoch = %04d train time = %d s train loss = %.6f train acc = %.2f, test acc = %.2f, max_Equalized_Odds = %.2f, mean_Equalized_Odds = %.2f' % (get_time(), it_eval, Epoch, int(time_train), loss_train, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds))
+    print('max_Sufficiency = %.2f, mean_Sufficiency = %.2f' % (max_Sufficiency, mean_Sufficiency))
 
     return net, acc_train, acc_test, max_Equalized_Odds,mean_Equalized_Odds, max_Sufficiency, mean_Sufficiency
 

@@ -16,8 +16,8 @@ DATASETS=(
   "CIFAR10_S_90"
   "Colored_FashionMNIST_foreground"
   "Colored_FashionMNIST_background"
-  # "Colored_MNIST_foreground"
-  # "Colored_MNIST_background"
+  "Colored_MNIST_foreground"
+  "Colored_MNIST_background"
 
   
 )
@@ -29,7 +29,7 @@ DATASETS=(
       echo "Time: $(date)" 
       echo "==================================================" 
 
-      python test_DC.py \
+      python test_fairness.py \
         --dataset "$dataset" 
 
     #   echo "" 
@@ -37,5 +37,3 @@ DATASETS=(
     #   echo "" 
 
     done
-  done
-done
