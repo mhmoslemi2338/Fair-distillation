@@ -386,6 +386,82 @@ def epoch(mode, dataloader, net, optimizer, criterion, args, aug):
     return loss_avg, acc_avg
 
 
+
+
+def epoch_Fairness_Metric_suff(mode, dataloader, net, criterion, args, aug):
+    loss_avg, acc_avg, num_exp = 0, 0, 0
+    net = net.to(args.device)
+    criterion = criterion.to(args.device)
+    pre = []
+    true = []
+
+    eval_pred_count = torch.zeros(args.num_groups, args.num_classes).cuda()
+    eval_true_count = torch.zeros(args.num_groups, args.num_classes).cuda()
+
+    if mode == 'train':
+        net.train()
+    else:
+        net.eval()
+
+    for i_batch, datum in enumerate(dataloader):
+        img = datum[0].float().to(args.device)
+        if aug:
+            if args.dsa:
+                img = DiffAugment(img, args.dsa_strategy, param=args.dsa_param)
+            else:
+                img = augment(img, args.dc_aug_param, device=args.device)
+        
+        lab = datum[1].long().to(args.device)
+        n_b = lab.shape[0]
+
+        output = net(img)
+        loss = criterion(output, lab)
+        acc_np = np.sum(np.equal(np.argmax(output.cpu().data.numpy(), axis=-1), lab.cpu().data.numpy()))
+        
+        loss_avg += loss.item() * n_b
+        acc_avg += acc_np
+        num_exp += n_b
+        
+        # Get sensitive attribute (color/group)
+        a = datum[2].long().to(args.device)
+
+        preds = torch.argmax(output, 1)
+        acc = (preds == lab).float().squeeze()
+        
+        for g in range(args.num_groups):
+            for l in range(args.num_classes):
+                # 1. Denominator: How many times did we PREDICT class 'l' for group 'g'?
+                eval_pred_count[g, l] += torch.sum((a == g) * (preds == l))
+                
+                # 2. Numerator: How many times were we CORRECT when predicting class 'l' for group 'g'?
+                tmp = (lab == l).float().squeeze()
+                eval_true_count[g, l] += tmp[(a == g) * (preds == l)].sum()
+                # eval_true_count[g, l] += acc[(a == g) * (preds == l)].sum()
+
+    # Add epsilon to denominator to avoid division by zero
+    # We add it to eval_pred_count because Sufficiency = P(y|y^) = Correct / Predicted
+    eval_pred_count = eval_pred_count + 1e-8
+    
+    # Calculate Precision per Group per Class
+    # Shape: [num_groups, num_classes]
+    eval_precision = eval_true_count / eval_pred_count
+    
+    # Calculate the Gap (Max - Min) across groups for each class
+    # Shape: [num_classes]
+    suff_gap_per_class = torch.max(eval_precision, dim=0)[0] - torch.min(eval_precision, dim=0)[0]
+    
+    # Get Max and Mean gaps across the classes
+    max_Sufficiency = torch.max(suff_gap_per_class).item()
+    mean_Sufficiency = torch.mean(suff_gap_per_class).item()
+
+    loss_avg /= num_exp
+    acc_avg /= num_exp
+    
+    return loss_avg, acc_avg, max_Sufficiency, mean_Sufficiency
+
+
+
+
 def epoch_Fairness_Metric(mode, dataloader, net, criterion, args, aug):
     loss_avg, acc_avg, num_exp = 0, 0, 0
     net = net.to(args.device)
@@ -465,9 +541,15 @@ def evaluate_synset(it_eval, net, images_train, labels_train, testloader, args):
 
     time_train = time.time() - start
     loss_test, acc_test, max_Equalized_Odds,mean_Equalized_Odds = epoch_Fairness_Metric('test', testloader, net, criterion, args, aug = False)
+    _, _, max_Sufficiency ,mean_Sufficiency = epoch_Fairness_Metric_suff('test', testloader, net, criterion, args, aug = False)
+    
     acc_test, max_Equalized_Odds, mean_Equalized_Odds = round(acc_test * 100, 2), round(max_Equalized_Odds * 100, 2), round(mean_Equalized_Odds * 100, 2)
-    print('%s Evaluate_%02d: epoch = %04d train time = %d s train loss = %.6f train acc = %.2f, test acc = %.2f, max_Equalized_Odds = %.2f, mean_Equalized_Odds = %.2f' % (get_time(), it_eval, Epoch, int(time_train), loss_train, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds))
-    return net, acc_train, acc_test, max_Equalized_Odds,mean_Equalized_Odds
+    max_Sufficiency, mean_Sufficiency = round(max_Sufficiency * 100, 2), round(mean_Sufficiency * 100, 2)
+
+    # print('%s Evaluate_%02d: epoch = %04d train time = %d s train loss = %.6f train acc = %.2f, test acc = %.2f, max_Equalized_Odds = %.2f, mean_Equalized_Odds = %.2f' % (get_time(), it_eval, Epoch, int(time_train), loss_train, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds))
+    # print('max_Sufficiency = %.2f, mean_Sufficiency = %.2f' % (max_Sufficiency, mean_Sufficiency))
+
+    return net, acc_train, acc_test, max_Equalized_Odds,mean_Equalized_Odds, max_Sufficiency, mean_Sufficiency
 
 
 def augment(images, dc_aug_param, device):
