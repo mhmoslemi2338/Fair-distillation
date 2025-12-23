@@ -13,3 +13,7 @@ __pycache__/
 */*.pyc
 *.gz
 data/
+
+__pycache__
+__pycache__/
+**/__pycache__/

@@ -1,0 +1,259 @@
+
+ -------Model = DC, dataset = Colored_MNIST_foreground, ipc = 10 --------- 
+Accuracy: 71.765143 ± 1.554020 
+max_Equalized_Odds: 99.540857 ± 0.554047 
+mean_Equalized_Odds: 64.805714 ± 2.722637
+max_Sufficiency: 98.700286 ± 4.669611
+mean_Sufficiency: 68.034000 ± 2.477062
+--------------------------------
+
+
+ -------Model = DC, dataset = Colored_MNIST_foreground, ipc = 50 --------- 
+Accuracy: 90.669429 ± 0.581176 
+max_Equalized_Odds: 46.930571 ± 6.128323 
+mean_Equalized_Odds: 20.533143 ± 1.620677
+max_Sufficiency: 41.957429 ± 3.225614
+mean_Sufficiency: 35.776286 ± 2.016751
+--------------------------------
+
+
+ -------Model = DC, dataset = Colored_MNIST_foreground, ipc = 100 --------- 
+Accuracy: 91.775143 ± 0.510257 
+max_Equalized_Odds: 46.304857 ± 7.467351 
+mean_Equalized_Odds: 17.974000 ± 1.736685
+max_Sufficiency: 42.432857 ± 5.688114
+mean_Sufficiency: 31.005429 ± 2.361441
+--------------------------------
+
+
+
+
+ -------Model = DM, dataset = Colored_MNIST_foreground, ipc = 10 --------- 
+Accuracy: 24.083143 ± 1.154075 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 99.877143 ± 0.063632
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 85.658857 ± 3.589653
+--------------------------------
+
+
+ -------Model = DM, dataset = Colored_MNIST_foreground, ipc = 50 --------- 
+Accuracy: 62.132000 ± 1.886632 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 88.347714 ± 2.233887
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 79.855714 ± 2.429574
+--------------------------------
+
+
+ -------Model = DM, dataset = Colored_MNIST_foreground, ipc = 100 --------- 
+Accuracy: 77.722571 ± 1.127988 
+max_Equalized_Odds: 99.488000 ± 0.645117 
+mean_Equalized_Odds: 63.080286 ± 2.843703
+max_Sufficiency: 95.752286 ± 7.056831
+mean_Sufficiency: 63.041429 ± 2.238779
+--------------------------------
+
+
+ -------Model = DC, dataset = Colored_MNIST_background, ipc = 10 --------- 
+Accuracy: 66.174286 ± 2.495479 
+max_Equalized_Odds: 99.884857 ± 0.320574 
+mean_Equalized_Odds: 73.308857 ± 3.673006
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 75.259429 ± 2.873050
+--------------------------------
+
+ -------Model = DC, dataset = Colored_MNIST_background, ipc = 50 --------- 
+Accuracy: 88.540571 ± 0.916013 
+max_Equalized_Odds: 58.444000 ± 7.044587 
+mean_Equalized_Odds: 25.955143 ± 2.798292
+max_Sufficiency: 48.124286 ± 4.154901
+mean_Sufficiency: 40.144000 ± 2.815575
+--------------------------------
+
+
+ -------Model = DC, dataset = Colored_MNIST_background, ipc = 100 --------- 
+Accuracy: 89.960000 ± 0.930794 
+max_Equalized_Odds: 59.569429 ± 9.780944 
+mean_Equalized_Odds: 21.340286 ± 2.354679
+max_Sufficiency: 45.817714 ± 4.194478
+mean_Sufficiency: 36.529714 ± 3.577540
+--------------------------------
+
+
+ -------Model = DM, dataset = Colored_MNIST_background, ipc = 10 --------- 
+Accuracy: 18.815429 ± 0.762823 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 99.988571 ± 0.031816
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 76.839143 ± 5.946233
+--------------------------------
+
+
+
+ -------Model = DM, dataset = Colored_MNIST_background, ipc = 50 --------- 
+Accuracy: 50.429714 ± 2.190354 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 96.954000 ± 1.216295
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 92.346000 ± 1.963643
+--------------------------------
+
+ -------Model = DM, dataset = Colored_MNIST_background, ipc = 100 --------- 
+Accuracy: 74.000000 ± 1.275376 
+max_Equalized_Odds: 99.772000 ± 0.418868 
+mean_Equalized_Odds: 70.330000 ± 2.148899
+max_Sufficiency: 99.893143 ± 0.444463
+mean_Sufficiency: 70.361143 ± 2.400889
+--------------------------------
+
+
+
+
+ -------Model = DC, dataset = CIFAR10_S_90, ipc = 10 --------- 
+Accuracy: 37.681143 ± 0.592779 
+max_Equalized_Odds: 39.788571 ± 2.325114 
+mean_Equalized_Odds: 24.798857 ± 1.499636
+max_Sufficiency: 22.678857 ± 4.184317
+mean_Sufficiency: 11.001714 ± 0.933107
+--------------------------------
+
+
+ -------Model = DC, dataset = CIFAR10_S_90, ipc = 50 --------- 
+Accuracy: 40.614286 ± 1.077511 
+max_Equalized_Odds: 69.665714 ± 3.888955 
+mean_Equalized_Odds: 43.362000 ± 3.633022
+max_Sufficiency: 36.788571 ± 6.583767
+mean_Sufficiency: 20.106286 ± 2.343287
+--------------------------------
+
+ -------Model = DC, dataset = CIFAR10_S_90, ipc = 100 --------- 
+Accuracy: 43.137143 ± 1.293075 
+max_Equalized_Odds: 68.754286 ± 4.768848 
+mean_Equalized_Odds: 47.358857 ± 3.757419
+max_Sufficiency: 39.703143 ± 4.363338
+mean_Sufficiency: 25.437429 ± 2.726373
+--------------------------------
+
+
+
+ -------Model = DM, dataset = CIFAR10_S_90, ipc = 10 --------- 
+Accuracy: 33.696286 ± 0.658935 
+max_Equalized_Odds: 51.077143 ± 3.131233 
+mean_Equalized_Odds: 30.882571 ± 1.218009
+max_Sufficiency: 22.612571 ± 6.019032
+mean_Sufficiency: 10.396286 ± 1.311246
+--------------------------------
+
+
+ -------Model = DM, dataset = CIFAR10_S_90, ipc = 50 --------- 
+Accuracy: 38.653714 ± 0.733103 
+max_Equalized_Odds: 76.477143 ± 1.412209 
+mean_Equalized_Odds: 56.607714 ± 1.638433
+max_Sufficiency: 52.530286 ± 6.485545
+mean_Sufficiency: 28.792286 ± 1.622191
+--------------------------------
+
+ -------Model = DM, dataset = CIFAR10_S_90, ipc = 100 --------- 
+Accuracy: 40.340000 ± 0.502235 
+max_Equalized_Odds: 80.582857 ± 1.001281 
+mean_Equalized_Odds: 60.877714 ± 0.910535
+max_Sufficiency: 57.675143 ± 4.453698
+mean_Sufficiency: 36.171143 ± 2.060079
+--------------------------------
+
+
+
+ -------Model = DC, dataset = Colored_FashionMNIST_foreground, ipc = 10 --------- 
+Accuracy: 60.677143 ± 1.111708 
+max_Equalized_Odds: 99.914286 ± 0.279942 
+mean_Equalized_Odds: 79.854286 ± 1.604163
+max_Sufficiency: 96.790286 ± 5.593562
+mean_Sufficiency: 68.209714 ± 3.199847
+--------------------------------
+
+
+
+ -------Model = DC, dataset = Colored_FashionMNIST_foreground, ipc = 50 --------- 
+Accuracy: 68.713429 ± 0.457084 
+max_Equalized_Odds: 99.342857 ± 0.474664 
+mean_Equalized_Odds: 66.814286 ± 1.299702
+max_Sufficiency: 96.484857 ± 7.882076
+mean_Sufficiency: 60.434286 ± 2.550676
+--------------------------------
+
+
+ -------Model = DC, dataset = Colored_FashionMNIST_foreground, ipc = 100 --------- 
+Accuracy: 68.743429 ± 0.531794 
+max_Equalized_Odds: 99.657143 ± 0.474664 
+mean_Equalized_Odds: 67.511429 ± 1.724905
+max_Sufficiency: 97.745429 ± 5.639543
+mean_Sufficiency: 64.002857 ± 3.450022
+--------------------------------
+
+
+
+
+ -------Model = DM, dataset = Colored_FashionMNIST_foreground, ipc = 10 --------- 
+Accuracy: 34.748857 ± 0.973453 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 99.088571 ± 0.203921
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 79.746571 ± 3.941454
+--------------------------------
+
+
+ -------Model = DM, dataset = Colored_FashionMNIST_foreground, ipc = 50 --------- 
+Accuracy: 52.444000 ± 1.087320 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 95.505714 ± 0.547171
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 82.503143 ± 4.904745
+--------------------------------
+
+
+ -------Model = DM, dataset = Colored_FashionMNIST_foreground, ipc = 100 --------- 
+Accuracy: 61.447429 ± 0.785044 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 81.165714 ± 1.147156
+max_Sufficiency: 95.250571 ± 4.994269
+mean_Sufficiency: 69.682857 ± 2.395683
+--------------------------------
+
+
+
+
+ -------Model = DC, dataset = Colored_FashionMNIST_background, ipc = 10 --------- 
+Accuracy: 47.859429 ± 0.595459 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 92.482857 ± 0.990955
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 76.153143 ± 2.808783
+--------------------------------
+
+
+ -------Model = DC, dataset = Colored_FashionMNIST_background, ipc = 50 --------- 
+Accuracy: 60.644857 ± 0.710289 
+max_Equalized_Odds: 99.914286 ± 0.279942 
+mean_Equalized_Odds: 76.177143 ± 1.319109
+max_Sufficiency: 97.053714 ± 5.344270
+mean_Sufficiency: 68.309714 ± 2.731301
+--------------------------------
+
+ -------Model = DC, dataset = Colored_FashionMNIST_background, ipc = 100 --------- 
+Accuracy: 62.922857 ± 0.781320 
+max_Equalized_Odds: 99.428571 ± 0.494872 
+mean_Equalized_Odds: 71.708571 ± 1.537785
+max_Sufficiency: 96.032571 ± 8.124527
+mean_Sufficiency: 66.065714 ± 3.072694
+--------------------------------
+
+
+ -------Model = DM, dataset = Colored_FashionMNIST_background, ipc = 10 --------- 
+Accuracy: 24.356571 ± 0.934702 
+max_Equalized_Odds: 100.000000 ± 0.000000 
+mean_Equalized_Odds: 99.408571 ± 0.127327
+max_Sufficiency: 100.000000 ± 0.000000
+mean_Sufficiency: 63.224286 ± 4.515805
+--------------------------------
+
