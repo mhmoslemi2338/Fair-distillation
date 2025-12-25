@@ -13,11 +13,11 @@ set -e
 
 # Datasets
 DATASETS=(
-  "CIFAR10_S_90"
-  "Colored_FashionMNIST_foreground"
+  # "CIFAR10_S_90"
+  # "Colored_FashionMNIST_foreground"
   "Colored_FashionMNIST_background"
-  "Colored_MNIST_foreground"
-  "Colored_MNIST_background"
+  # "Colored_MNIST_foreground"
+  # "Colored_MNIST_background"
 
   
 )

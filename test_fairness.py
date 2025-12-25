@@ -18,7 +18,7 @@ def main():
     parser.add_argument('--eval_mode', type=str, default='S', help='eval_mode') # S: the same to training model, M: multi architectures,  W: net width, D: net depth, A: activation function, P: pooling layer, N: normalization layer,
 
     parser.add_argument('--num_exp', type=int, default=1, help='the number of experiments')
-    parser.add_argument('--num_eval', type=int, default=35, help='the number of evaluating randomly initialized models')
+    parser.add_argument('--num_eval', type=int, default=10, help='the number of evaluating randomly initialized models')
     parser.add_argument('--epoch_eval_train', type=int, default=300, help='epochs to train a model with synthetic data')
 
     parser.add_argument('--Iteration', type=int, default=1000, help='training iterations')
@@ -82,9 +82,11 @@ def main():
 
 
 
-        for name in ['DC','DM','IDC', 'Random','full']:
+        # for name in ['DC','DM','IDC', 'Random','full']:
+        for name in ['DC']:
             args.testMetric = name
-            for ipc in [10, 50,100]:
+            # for ipc in [10, 50,100]:
+            for ipc in [50]:
                 if name == 'full':
                     if ipc in [50,100]: continue
 
@@ -104,14 +106,17 @@ def main():
 
                 
                 else:
-                    save_path = '/home/mmoslem3/scratch/FairDD/results/'+args.testMetric+'_' + args.dataset + '_ipc'  + str(args.ipc) +'/res_'+args.testMetric+'_' + args.dataset + '_ConvNet_'+str(args.ipc)+'ipc.pt' # Your file path
+                    # save_path = '/home/mmoslem3/scratch/FairDD/results/'+args.testMetric+'_' + args.dataset + '_ipc'  + str(args.ipc) +'/res_'+args.testMetric+'_' + args.dataset + '_ConvNet_'+str(args.ipc)+'ipc.pt' # Your file path
+                    save_path = '/home/mmoslem3/scratch/FairDD/results/res_'+args.testMetric+'_' + args.dataset + '_ConvNet_'+str(args.ipc)+'ip100.pt' # Your file path
+                    print(save_path)
                     checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
                     data_list = checkpoint['data']
 
                     if name == 'IDC':
                         image_syn, label_syn = data_list
                     else:
-                        image_syn, label_syn = data_list[0]
+                        # image_syn, label_syn = data_list[0]
+                        image_syn, label_syn = data_list
 
                 image_syn = image_syn.to(args.device)
                 label_syn = label_syn.to(args.device)

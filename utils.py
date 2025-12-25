@@ -346,6 +346,67 @@ def get_loops(ipc):
     return outer_loop, inner_loop
 
 
+def _sanitize_grads(grads, net_parameters):
+    out = []
+    for g, p in zip(grads, net_parameters):
+        out.append(torch.zeros_like(p) if g is None else g)
+    return out
+
+def grad_sub(g1, g2):
+    return [a - b for a, b in zip(g1, g2)]
+
+def grad_dot(g1, g2):
+    s = None
+    for a, b in zip(g1, g2):
+        v = (a * b).sum()
+        s = v if s is None else (s + v)
+    return s
+
+def proj_norm2_onto_span(g, basis, eps=1e-6):
+    """
+    Returns ||P_span(basis) g||^2 where:
+      - g is list[tensor] and may require grad
+      - basis is list[list[tensor]] and should be detached (constants)
+    """
+    m = len(basis)
+    if m == 0:
+        return g[0].new_tensor(0.0)
+
+    # Gram matrix of basis: G_ij = <b_i, b_j>  (constants)
+    G = g[0].new_zeros((m, m))
+    for i in range(m):
+        for j in range(m):
+            G[i, j] = grad_dot(basis[i], basis[j])
+
+    # v_i = <b_i, g> (depends on g)
+    v = g[0].new_zeros((m,))
+    for i in range(m):
+        v[i] = grad_dot(basis[i], g)
+
+    # Solve (G + eps I) alpha = v
+    G = G + eps * torch.eye(m, device=G.device, dtype=G.dtype)
+    alpha = torch.linalg.solve(G, v)
+
+    # ||P g||^2 = v^T alpha
+    return (v * alpha).sum()
+
+def orthogonality_loss_from_group_grads(gw_syn, group_grads, eps=1e-6):
+    """
+    gw_syn: list[tensor], from autograd.grad(..., create_graph=True)
+    group_grads: list[list[tensor]], each detached
+    """
+    if len(group_grads) < 2:
+        return gw_syn[0].new_tensor(0.0)
+
+    g_ref = group_grads[0]
+    basis = [grad_sub(g_a, g_ref) for g_a in group_grads[1:]]  # (g_a - g_ref)
+    return proj_norm2_onto_span(gw_syn, basis, eps=eps)
+
+
+
+
+
+
 
 def epoch(mode, dataloader, net, optimizer, criterion, args, aug):
     loss_avg, acc_avg, num_exp = 0, 0, 0

@@ -9,9 +9,6 @@ from torchvision.utils import save_image
 from utils import get_loops, get_dataset, get_network, get_eval_pool, evaluate_synset, get_daparam, match_loss, get_time, TensorDataset, epoch, DiffAugment, ParamDiffAug
 import random
 
-
-from utils import orthogonality_loss_from_group_grads, _sanitize_grads
-
 def main():
     parser = argparse.ArgumentParser(description='Parameter Processing')
     parser.add_argument('--method', type=str, default='DC', help='DC/DSA')
@@ -24,7 +21,7 @@ def main():
     parser.add_argument('--num_eval', type=int, default=1, help='the number of evaluating randomly initialized models')
     parser.add_argument('--epoch_eval_train', type=int, default=1, help='epochs to train a model with synthetic data')
 
-    parser.add_argument('--Iteration', type=int, default=100, help='training iterations')
+    parser.add_argument('--Iteration', type=int, default=1000, help='training iterations')
     parser.add_argument('--lr_img', type=float, default=0.1, help='learning rate for updating synthetic images')
     parser.add_argument('--lr_net', type=float, default=0.01, help='learning rate for updating network parameters')
     parser.add_argument('--batch_real', type=int, default=256, help='batch size for real data')
@@ -42,8 +39,7 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = True if args.method == 'DSA' else False
-    args.FairDD = True
-
+    args.FairDD = False
 
     # if not os.path.exists(args.data_path):
     #     os.mkdir(args.data_path)
@@ -53,7 +49,7 @@ def main():
 
     # eval_it_pool = np.arange(0, args.Iteration+1, 500).tolist() if args.eval_mode == 'S' or args.eval_mode == 'SS' else [args.Iteration] # The list of iterations when we evaluate models and record results.
     # eval_it_pool = [0, 1000]
-    eval_it_pool = [args.Iteration]
+    eval_it_pool = [1000]
     print('eval_it_pool: ', eval_it_pool)
     channel, im_size, num_classes, class_names, mean, std, dst_train, dst_test, testloader = get_dataset(args.dataset, args.data_path)
     model_eval_pool = get_eval_pool(args.eval_mode, args.model, args.model)
@@ -147,7 +143,7 @@ def main():
                     for it_eval in range(args.num_eval):
                         net_eval = get_network(model_eval, channel, num_classes, im_size).to(args.device) # get a random model
                         image_syn_eval, label_syn_eval = copy.deepcopy(image_syn.detach()), copy.deepcopy(label_syn.detach()) # avoid any unaware modification
-                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds, max_Sufficiency, mean_Sufficiency = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
+                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
                         accs.append(acc_test)
                         max_Equalized_Odds_list.append(max_Equalized_Odds)
                         mean_Equalized_Odds_list.append(mean_Equalized_Odds)
@@ -158,8 +154,7 @@ def main():
                         accs_all_exps[model_eval] += accs
 
                 ''' visualize and save '''
-
-                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d_Fair.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
+                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
                 image_syn_vis = copy.deepcopy(image_syn.detach().cpu())
                 for ch in range(channel):
                     image_syn_vis[:, ch] = image_syn_vis[:, ch]  * std[ch] + mean[ch]
@@ -178,9 +173,7 @@ def main():
             args.dc_aug_param = None  # Mute the DC augmentation when learning synthetic data (in inner-loop epoch function) in oder to be consistent with DC paper.
 
 
-            # for ol in range(args.outer_loop):
-            for ol in range(args.outer_loop - 35):
-                
+            for ol in range(args.outer_loop):
 
                 ''' freeze the running mu and sigma for BatchNorm layers '''
                 # Synthetic data batch, e.g. only 1 image/batch, is too small to obtain stable mu and sigma.
@@ -203,8 +196,6 @@ def main():
 
                 ''' update synthetic data '''
                 loss = torch.tensor(0.0).to(args.device)
-                L= 0 
-                L2 = 0
                 for c in range(num_classes):
                     img_real, label, color = get_images(c, args.batch_real)
                     lab_real = torch.ones((img_real.shape[0],), device=args.device, dtype=torch.long) * c
@@ -217,18 +208,21 @@ def main():
                         img_syn = DiffAugment(img_syn, args.dsa_strategy, seed=seed, param=args.dsa_param)
 
                     if args.FairDD==True:
-                        output_real = net(img_real)
-                        output_syn = net(img_syn)
+                        # output_real = net(img_real)
+                        # output_syn = net(img_syn)
 
-                        loss_syn = criterion(output_syn, lab_syn)
-                        gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+                        # loss_syn = criterion(output_syn, lab_syn)
+                        # gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
 
-                        for col in torch.unique(color):
-                            loss_real_col = criterion(output_real[color == col], lab_real[color == col])
-                            gw_real_col = torch.autograd.grad(loss_real_col, net_parameters, retain_graph=True)
-                            gw_real_col = list((_.detach().clone() for _ in gw_real_col))
+                        # for col in torch.unique(color):
+                        #     loss_real_col = criterion(output_real[color == col], lab_real[color == col])
+                        #     gw_real_col = torch.autograd.grad(loss_real_col, net_parameters, retain_graph=True)
+                        #     gw_real_col = list((_.detach().clone() for _ in gw_real_col))
 
-                            loss += match_loss(gw_syn, gw_real_col, args)
+                        #     loss += match_loss(gw_syn, gw_real_col, args)
+
+                        # TO DO
+                            
                     else:
                         output_real = net(img_real)
                         loss_real = criterion(output_real, lab_real)
@@ -260,27 +254,12 @@ def main():
 
             loss_avg /= (num_classes*args.outer_loop)
 
-            L /= (num_classes*args.outer_loop)
-            L2 /= (num_classes*args.outer_loop)
-            print(L, L2)
+            if it%10 == 0:
+                print('%s iter = %04d, loss = %.4f' % (get_time(), it, loss_avg))
 
-
-
-
-            # if it%10 == 0:
-
-
-            print('%s iter = %04d, loss = %.4f' % (get_time(), it, loss_avg))
-
-
-            save_every = max(1, args.Iteration // 10)
-
-            if it % save_every == 0 or it == args.Iteration:
-            # if it == args.Iteration //10: # only record the final results
-                # data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration)))
-                print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration))))
+            if it == args.Iteration: # only record the final results
+                data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
+                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dipc.pt'%(args.method, args.dataset, args.model, args.ipc)))
 
 
     print('\n==================== Final Results ====================\n')
