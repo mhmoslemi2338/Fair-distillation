@@ -9,6 +9,9 @@ from torchvision.utils import save_image
 from utils import get_loops, get_dataset, get_network, get_eval_pool, evaluate_synset, get_daparam, match_loss, get_time, TensorDataset, epoch, DiffAugment, ParamDiffAug
 import random
 
+
+from utils import orthogonality_loss_from_group_grads, _sanitize_grads
+
 def main():
     parser = argparse.ArgumentParser(description='Parameter Processing')
     parser.add_argument('--method', type=str, default='DC', help='DC/DSA')
@@ -32,6 +35,7 @@ def main():
     parser.add_argument('--save_path', type=str, default='result', help='path to save results')
     parser.add_argument('--dis_metric', type=str, default='ours', help='distance metric')
     parser.add_argument('--FairDD', action='store_true', help='Enable FairDD')
+    parser.add_argument('--fair_lambda', type=float, default=0.0005, help='FairDD lambda parameter')
 
 
     args = parser.parse_args()
@@ -39,7 +43,8 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = True if args.method == 'DSA' else False
-    args.FairDD = False
+    args.FairDD = True
+    # args.FairDD = False
 
     # if not os.path.exists(args.data_path):
     #     os.mkdir(args.data_path)
@@ -49,7 +54,7 @@ def main():
 
     # eval_it_pool = np.arange(0, args.Iteration+1, 500).tolist() if args.eval_mode == 'S' or args.eval_mode == 'SS' else [args.Iteration] # The list of iterations when we evaluate models and record results.
     # eval_it_pool = [0, 1000]
-    eval_it_pool = [1000]
+    eval_it_pool = [args.Iteration]
     print('eval_it_pool: ', eval_it_pool)
     channel, im_size, num_classes, class_names, mean, std, dst_train, dst_test, testloader = get_dataset(args.dataset, args.data_path)
     model_eval_pool = get_eval_pool(args.eval_mode, args.model, args.model)
@@ -143,7 +148,7 @@ def main():
                     for it_eval in range(args.num_eval):
                         net_eval = get_network(model_eval, channel, num_classes, im_size).to(args.device) # get a random model
                         image_syn_eval, label_syn_eval = copy.deepcopy(image_syn.detach()), copy.deepcopy(label_syn.detach()) # avoid any unaware modification
-                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
+                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds, max_Sufficiency, mean_Sufficiency = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
                         accs.append(acc_test)
                         max_Equalized_Odds_list.append(max_Equalized_Odds)
                         mean_Equalized_Odds_list.append(mean_Equalized_Odds)
@@ -154,7 +159,8 @@ def main():
                         accs_all_exps[model_eval] += accs
 
                 ''' visualize and save '''
-                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
+
+                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d_Fair.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
                 image_syn_vis = copy.deepcopy(image_syn.detach().cpu())
                 for ch in range(channel):
                     image_syn_vis[:, ch] = image_syn_vis[:, ch]  * std[ch] + mean[ch]
@@ -173,7 +179,9 @@ def main():
             args.dc_aug_param = None  # Mute the DC augmentation when learning synthetic data (in inner-loop epoch function) in oder to be consistent with DC paper.
 
 
+            # for ol in range(args.outer_loop):
             for ol in range(args.outer_loop):
+                
 
                 ''' freeze the running mu and sigma for BatchNorm layers '''
                 # Synthetic data batch, e.g. only 1 image/batch, is too small to obtain stable mu and sigma.
@@ -196,6 +204,8 @@ def main():
 
                 ''' update synthetic data '''
                 loss = torch.tensor(0.0).to(args.device)
+                L= 0 
+                L2 = 0
                 for c in range(num_classes):
                     img_real, label, color = get_images(c, args.batch_real)
                     lab_real = torch.ones((img_real.shape[0],), device=args.device, dtype=torch.long) * c
@@ -208,21 +218,135 @@ def main():
                         img_syn = DiffAugment(img_syn, args.dsa_strategy, seed=seed, param=args.dsa_param)
 
                     if args.FairDD==True:
-                        # output_real = net(img_real)
-                        # output_syn = net(img_syn)
+                    # if False: #exp1
+                        # 1. Compute Synthetic Gradients
+                        output_syn = net(img_syn)
+                        loss_syn = criterion(output_syn, lab_syn)
+                        gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
 
-                        # loss_syn = criterion(output_syn, lab_syn)
-                        # gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+                        # 2. Compute Real Output (THIS WAS MISSING)
+                        output_real = net(img_real)
 
-                        # for col in torch.unique(color):
-                        #     loss_real_col = criterion(output_real[color == col], lab_real[color == col])
-                        #     gw_real_col = torch.autograd.grad(loss_real_col, net_parameters, retain_graph=True)
-                        #     gw_real_col = list((_.detach().clone() for _ in gw_real_col))
-
-                        #     loss += match_loss(gw_syn, gw_real_col, args)
-
-                        # TO DO
+                        # --- PREPARE REAL GRADIENTS (Handle Imbalance Here) ---
+                        unique_groups = torch.unique(color)
+                        group_grads = {}
+                        
+                        # Iterate over each group present in the current batch
+                        for grp_idx in unique_groups:
+                            mask = (color == grp_idx)
+                            if mask.sum() == 0: continue
                             
+                            # Calculate average gradient for THIS group only
+                            # We use output_real[mask] which is now defined
+                            loss_grp = criterion(output_real[mask], lab_real[mask])
+                            g_grp = torch.autograd.grad(loss_grp, net_parameters, retain_graph=True)
+                            group_grads[grp_idx.item()] = list((_.detach().clone() for _ in g_grp))
+
+                        # 3. Construct BALANCED Real Gradient Target
+                        gw_real_balanced = []
+                        if len(group_grads) > 0:
+                            for i in range(len(gw_syn)): # Iterate over layers
+                                # Stack gradients from all groups for this layer
+                                layer_grads = [group_grads[k][i] for k in group_grads]
+                                # Take the mean across groups (giving them equal weight)
+                                gw_real_balanced.append(torch.stack(layer_grads).mean(dim=0))
+                        else:
+                            # Fallback: if no groups found (rare), use standard full-batch gradient
+                            loss_real = criterion(output_real, lab_real)
+                            gw_real_fallback = torch.autograd.grad(loss_real, net_parameters, retain_graph=True)
+                            gw_real_balanced = list((_.detach().clone() for _ in gw_real_fallback))
+
+                        # 4. Calculate Task Fidelity Loss (Using Balanced Target)
+                        loss += match_loss(gw_syn, gw_real_balanced, args)
+
+                        # 5. Calculate Orthogonality/Fairness Constraint
+                        if len(unique_groups) > 1:
+                            ortho_loss = torch.tensor(0.0).to(args.device)
+                            groups_list = list(group_grads.keys())
+                            
+                            for i in range(len(groups_list)):
+                                for j in range(i + 1, len(groups_list)):
+                                    g_a = group_grads[groups_list[i]]
+                                    g_b = group_grads[groups_list[j]]
+                                    
+                                    dot_prod = torch.tensor(0.0).to(args.device)
+                                    for k in range(len(gw_syn)):
+                                        # Difference vector (direction of bias)
+                                        diff = g_a[k] - g_b[k]
+                                        # Accumulate dot product
+                                        dot_prod += torch.sum(gw_syn[k] * diff)
+                                    
+                                    ortho_loss += dot_prod ** 2
+                            
+                            # fair_lambda = 0.0005
+                            fair_lambda = args.fair_lambda
+                            loss += fair_lambda * ortho_loss
+
+
+                    # if args.FairDD==True:
+                    #     # 1. Compute Synthetic Gradients
+                    #     output_syn = net(img_syn)
+                    #     loss_syn = criterion(output_syn, lab_syn)
+                    #     gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+
+                    #     # 2. Compute Real Output (THIS WAS MISSING)
+                    #     output_real = net(img_real)
+
+                    #     # --- PREPARE REAL GRADIENTS (Handle Imbalance Here) ---
+                    #     unique_groups = torch.unique(color)
+                    #     group_grads = {}
+                        
+                    #     # Iterate over each group present in the current batch
+                    #     for grp_idx in unique_groups:
+                    #         mask = (color == grp_idx)
+                    #         if mask.sum() == 0: continue
+                            
+                    #         # Calculate average gradient for THIS group only
+                    #         # We use output_real[mask] which is now defined
+                    #         loss_grp = criterion(output_real[mask], lab_real[mask])
+                    #         g_grp = torch.autograd.grad(loss_grp, net_parameters, retain_graph=True)
+                    #         group_grads[grp_idx.item()] = list((_.detach().clone() for _ in g_grp))
+
+
+                    #     # 5. Calculate Orthogonality/Fairness Constraint
+                    #     if len(unique_groups) > 1:
+                    #         ortho_loss = torch.tensor(0.0).to(args.device)
+                    #         groups_list = list(group_grads.keys())
+                            
+                    #         for i in range(len(groups_list)):
+                    #             for j in range(i + 1, len(groups_list)):
+                    #                 g_a = group_grads[groups_list[i]]
+                    #                 g_b = group_grads[groups_list[j]]
+                                    
+                    #                 dot_prod = torch.tensor(0.0).to(args.device)
+                    #                 for k in range(len(gw_syn)):
+                    #                     # Difference vector (direction of bias)
+                    #                     diff = g_a[k] - g_b[k]
+                    #                     # Accumulate dot product
+                    #                     dot_prod += torch.sum(gw_syn[k] * diff)
+                                    
+                    #                 ortho_loss += dot_prod ** 2
+
+
+
+                            
+                    #         loss_real = criterion(output_real, lab_real)
+                    #         gw_real = torch.autograd.grad(loss_real, net_parameters)
+                    #         gw_real = list((_.detach().clone() for _ in gw_real))
+
+                    #         output_syn = net(img_syn)
+                    #         loss_syn = criterion(output_syn, lab_syn)
+                    #         gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+
+                            
+
+
+                    #         fair_lambda = 0.0005
+                    #         loss += match_loss(gw_syn, gw_real, args)
+                    #         loss += fair_lambda * ortho_loss
+
+
+
                     else:
                         output_real = net(img_real)
                         loss_real = criterion(output_real, lab_real)
@@ -237,6 +361,7 @@ def main():
 
                 optimizer_img.zero_grad()
                 loss.backward()
+                
                 optimizer_img.step()
                 loss_avg += loss.item()
 
@@ -252,14 +377,31 @@ def main():
                     epoch('train', trainloader, net, optimizer_net, criterion, args, aug = True if args.dsa else False)
 
 
+
+
+
             loss_avg /= (num_classes*args.outer_loop)
 
-            if it%10 == 0:
-                print('%s iter = %04d, loss = %.4f' % (get_time(), it, loss_avg))
+            # L /= (num_classes*args.outer_loop)
+            # L2 /= (num_classes*args.outer_loop)
+            # print(L, L2)
 
+
+
+
+            # if it%10 == 0:
+
+
+            print('%s iter = %04d, loss = %.4f' % (get_time(), it, loss_avg))
+
+
+            # save_every = max(1, args.Iteration // 10)
+            # if it % save_every == 0 or it == args.Iteration:
             if it == args.Iteration: # only record the final results
                 data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dipc.pt'%(args.method, args.dataset, args.model, args.ipc)))
+                # data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
+                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration)))
+                print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip.pt'%(args.method, args.dataset, args.model, args.ipc))))
 
 
     print('\n==================== Final Results ====================\n')
