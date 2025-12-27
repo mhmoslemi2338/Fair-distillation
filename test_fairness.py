@@ -107,6 +107,7 @@ def main():
                 
                 else:
                     save_path = '/home/mmoslem3/scratch/FairDD/results/DC-No-Ortho/Fair_NoOrtho_'+args.testMetric+'_' + args.dataset + '_ipc'  + str(args.ipc) +'/res_'+args.testMetric+'_' + args.dataset + '_ConvNet_'+str(args.ipc)+'ip1000.pt' # Your file path
+                    save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_UTKface_ConvNet_10ip1000.pt' # Your file path
                     # save_path = '/home/mmoslem3/scratch/FairDD/results/res_'+args.testMetric+'_' + args.dataset + '_ConvNet_'+str(args.ipc)+'ip100.pt' # Your file path
                     print(save_path)
                     checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
@@ -115,8 +116,8 @@ def main():
                     if name == 'IDC':
                         image_syn, label_syn = data_list
                     else:
-                        image_syn, label_syn = data_list[0]
-                        # image_syn, label_syn = data_list
+                        # image_syn, label_syn = data_list[0]
+                        image_syn, label_syn = data_list
 
                 image_syn = image_syn.to(args.device)
                 label_syn = label_syn.to(args.device)

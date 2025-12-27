@@ -26,7 +26,9 @@ def load_dataset(data_dir):
         race_list = []
         images = []
         # Loop over each image file in the directory
-        for filename in os.listdir(data_dir):
+        L = len(os.listdir(data_dir))
+        cnt = L //200 
+        for j, filename in enumerate(os.listdir(data_dir)):
             # Extract the age and ethnicity information from the filename
             information = filename.split("_")
             if len(information)<4:
@@ -54,6 +56,8 @@ def load_dataset(data_dir):
             image = np.asarray(image)
             # print('shape',image.shape)
             images.append(image)
+            if (j+1) % cnt == 0:
+                print(f"Loaded {j+1}/{L} images")
 
             # Create a label by combining the ethnicity and age range labels
             # label = ethnicity * len(age_ranges) + age_range
@@ -87,7 +91,24 @@ def UTKFaceDataset(data_dir="./data/UTKFace", transform=None):
         data_dir = data_dir_2
     elif os.path.exists(data_dir_3):
         data_dir = data_dir_3
-    images, labels, color, gender = load_dataset(data_dir)
+
+    try: 
+        loaded_data = torch.load(data_dir + '/dataset_checkpoint.pt', weights_only=False)
+        images = loaded_data['images']
+        labels = loaded_data['labels']
+        color = loaded_data['color']
+        gender = loaded_data['gender']
+    
+    except:
+        images, labels, color, gender = load_dataset(data_dir)
+        data_to_save = {
+        'images': images,
+        'labels': labels,
+        'color': color,
+        'gender': gender
+        }
+        torch.save(data_to_save, data_dir + '/dataset_checkpoint.pt')
+
     data_len = len(images)
 
     test_size = int(0.2 * data_len)

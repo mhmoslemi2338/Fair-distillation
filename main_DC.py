@@ -42,7 +42,7 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = True if args.method == 'DSA' else False
-    args.FairDD = True
+    args.FairDD = False
 
 
     # if not os.path.exists(args.data_path):
@@ -159,7 +159,7 @@ def main():
 
                 ''' visualize and save '''
 
-                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d_Fair.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
+                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
                 image_syn_vis = copy.deepcopy(image_syn.detach().cpu())
                 for ch in range(channel):
                     image_syn_vis[:, ch] = image_syn_vis[:, ch]  * std[ch] + mean[ch]
@@ -179,6 +179,7 @@ def main():
 
 
             # for ol in range(args.outer_loop):
+            args.outer_loop = 10
             for ol in range(args.outer_loop):
                 
 
@@ -260,9 +261,9 @@ def main():
 
             loss_avg /= (num_classes*args.outer_loop)
 
-            L /= (num_classes*args.outer_loop)
-            L2 /= (num_classes*args.outer_loop)
-            print(L, L2)
+            # L /= (num_classes*args.outer_loop)
+            # L2 /= (num_classes*args.outer_loop)
+            # print(L, L2)
 
 
 
@@ -279,7 +280,7 @@ def main():
             # if it == args.Iteration //10: # only record the final results
                 # data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration)))
+                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration)))
                 print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration))))
 
 

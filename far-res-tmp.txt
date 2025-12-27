@@ -1,3 +1,51 @@
+UTKFace
+
+
+balance grad
+
+test acc = 59.00, max_Equalized_Odds = 40.00, mean_Equalized_Odds = 17.33
+max_Sufficiency = 23.88, mean_Sufficiency = 19.99
+
+
+lambda 0.005
+    test acc = 67.00, max_Equalized_Odds = 40.00, mean_Equalized_Odds = 22.00
+    max_Sufficiency = 19.51, mean_Sufficiency j = 17.88
+
+
+lambda 0.0005
+     test acc = 64.17, max_Equalized_Odds = 36.00, mean_Equalized_Odds = 19.33
+     max_Sufficiency = 16.80, mean_Sufficiency = 16.38
+
+
+0.01, epsilon = 1e-8
+ test acc = 63.17, max_Equalized_Odds = 35.00, mean_Equalized_Odds = 18.00
+max_Sufficiency = 19.20, mean_Sufficiency = 16.55
+
+
+0.01, epsilon = 1e-5
+acc = 62.92, max_Equalized_Odds = 25.00, mean_Equalized_Odds = 19.00
+max_Sufficiency = 20.87, mean_Sufficiency = 17.96
+
+
+0.05, epsilon = 1e-5
+acc = 62.75, max_Equalized_Odds = 31.00, mean_Equalized_Odds = 19.33
+max_Sufficiency = 21.92, mean_Sufficiency = 18.79
+
+
+0.1, epsilon = 1e-5
+ test acc = 64.00, max_Equalized_Odds = 42.00, mean_Equalized_Odds = 20.67
+ max_Sufficiency = 19.88, mean_Sufficiency = 16.79
+
+
+
+FairDD
+ -------Model = DC, dataset = UTKface, ipc = 10 --------- 
+Accuracy: 60.342857 ± 4.226025 
+max_Equalized_Odds: 41.628571 ± 4.263370 
+mean_Equalized_Odds: 21.398857 ± 2.212497
+max_Sufficiency: 22.123714 ± 3.628153
+mean_Sufficiency: 17.366857 ± 3.149939
+--------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 -----------------------------------------------------------------

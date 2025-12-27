@@ -2,6 +2,7 @@
 *.out
 
 results/
+result/
 logs/
 
 __pycache__/

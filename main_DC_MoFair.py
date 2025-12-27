@@ -266,84 +266,43 @@ def main():
                             
                             for i in range(len(groups_list)):
                                 for j in range(i + 1, len(groups_list)):
+
+                                    # ... inside the group loops ...
                                     g_a = group_grads[groups_list[i]]
+                                    # print('\n\n\n\n\n')
+                                    # print(len(g_a))
+                                    # print(g_a[0].shape)
+                                    # print('\n\n\n\n\n')
                                     g_b = group_grads[groups_list[j]]
                                     
-                                    dot_prod = torch.tensor(0.0).to(args.device)
-                                    for k in range(len(gw_syn)):
-                                        # Difference vector (direction of bias)
+                                    # Calculate the magnitude (squared L2 norm) of the difference vector first
+                                    diff_norm_sq = torch.tensor(0.0).to(args.device)
+                                    for k in range(len(g_a)):
                                         diff = g_a[k] - g_b[k]
-                                        # Accumulate dot product
-                                        dot_prod += torch.sum(gw_syn[k] * diff)
+                                        diff_norm_sq += torch.sum(diff ** 2)
                                     
-                                    ortho_loss += dot_prod ** 2
+                                    # Define a threshold (epsilon). 
+                                    # If the groups disagree by less than this, ignore it.
+                                    # This prevents penalizing when gradients are effectively identical.
+                                    epsilon = 1e-5
+                                    if diff_norm_sq > epsilon:
+                                        dot_prod = torch.tensor(0.0).to(args.device)
+                                        for k in range(len(gw_syn)):
+                                            diff = g_a[k] - g_b[k]
+                                            dot_prod += torch.sum(gw_syn[k] * diff)
+                                        
+                                        # Normalize the penalty? (Optional but recommended)
+                                        # Dividing by diff_norm_sq makes the penalty purely about DIRECTION, 
+                                        # not magnitude of the disagreement.
+                                        ortho_loss += (dot_prod ** 2) / (diff_norm_sq + 1e-12)
+                                        
+                                        # Or keep your original un-normalized version:
+                                        # ortho_loss += dot_prod ** 2
                             
                             # fair_lambda = 0.0005
                             fair_lambda = args.fair_lambda
                             loss += fair_lambda * ortho_loss
 
-
-                    # if args.FairDD==True:
-                    #     # 1. Compute Synthetic Gradients
-                    #     output_syn = net(img_syn)
-                    #     loss_syn = criterion(output_syn, lab_syn)
-                    #     gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
-
-                    #     # 2. Compute Real Output (THIS WAS MISSING)
-                    #     output_real = net(img_real)
-
-                    #     # --- PREPARE REAL GRADIENTS (Handle Imbalance Here) ---
-                    #     unique_groups = torch.unique(color)
-                    #     group_grads = {}
-                        
-                    #     # Iterate over each group present in the current batch
-                    #     for grp_idx in unique_groups:
-                    #         mask = (color == grp_idx)
-                    #         if mask.sum() == 0: continue
-                            
-                    #         # Calculate average gradient for THIS group only
-                    #         # We use output_real[mask] which is now defined
-                    #         loss_grp = criterion(output_real[mask], lab_real[mask])
-                    #         g_grp = torch.autograd.grad(loss_grp, net_parameters, retain_graph=True)
-                    #         group_grads[grp_idx.item()] = list((_.detach().clone() for _ in g_grp))
-
-
-                    #     # 5. Calculate Orthogonality/Fairness Constraint
-                    #     if len(unique_groups) > 1:
-                    #         ortho_loss = torch.tensor(0.0).to(args.device)
-                    #         groups_list = list(group_grads.keys())
-                            
-                    #         for i in range(len(groups_list)):
-                    #             for j in range(i + 1, len(groups_list)):
-                    #                 g_a = group_grads[groups_list[i]]
-                    #                 g_b = group_grads[groups_list[j]]
-                                    
-                    #                 dot_prod = torch.tensor(0.0).to(args.device)
-                    #                 for k in range(len(gw_syn)):
-                    #                     # Difference vector (direction of bias)
-                    #                     diff = g_a[k] - g_b[k]
-                    #                     # Accumulate dot product
-                    #                     dot_prod += torch.sum(gw_syn[k] * diff)
-                                    
-                    #                 ortho_loss += dot_prod ** 2
-
-
-
-                            
-                    #         loss_real = criterion(output_real, lab_real)
-                    #         gw_real = torch.autograd.grad(loss_real, net_parameters)
-                    #         gw_real = list((_.detach().clone() for _ in gw_real))
-
-                    #         output_syn = net(img_syn)
-                    #         loss_syn = criterion(output_syn, lab_syn)
-                    #         gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
-
-                            
-
-
-                    #         fair_lambda = 0.0005
-                    #         loss += match_loss(gw_syn, gw_real, args)
-                    #         loss += fair_lambda * ortho_loss
 
 
 
