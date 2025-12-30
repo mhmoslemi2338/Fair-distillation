@@ -72,11 +72,11 @@ def main():
     
     for dataset in [
                     # "CIFAR10_S_90",
-                    "Colored_FashionMNIST_foreground",
-                    "Colored_FashionMNIST_background",
+                    # "Colored_FashionMNIST_foreground",
+                    # "Colored_FashionMNIST_background",
                     # "Colored_MNIST_foreground",
                     # "Colored_MNIST_background",
-                    # "UTKface"
+                    "UTKface"
                     ]:
         args.dataset = dataset
         channel, im_size, num_classes, class_names, mean, std, dst_train, dst_test, testloader = get_dataset(args.dataset, args.data_path)
@@ -119,76 +119,43 @@ def main():
             for name in ['DC']:
                 if name == 'DC':
                     ITER = 1000
-                for fair_crt in ['FairDD','NoFair','NoOrtho']:
+                # for lam in [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5]:
+                for lam in [0.1]:
                     args.testMetric = name
-                    for ipc in [10, 50,100]:
+                    for ipc in [10]:
 
-                        if entry_exists("/home/mmoslem3/scratch/FairDD/final.txt", name, fair_crt, dataset, ipc):
-                            print(f"Skipping existing entry: Model = {name}, Method = {fair_crt},  dataset = {dataset}, ipc = {ipc}")
-                            continue
-    
 
-                        if (name == 'full') and (ipc in [50,100]): continue
-
-                        args.ipc = ipc
-
-                        if name == 'Random':
-                            image_syn = torch.randn(size=(num_classes*args.ipc, channel, im_size[0], im_size[1]), dtype=torch.float, requires_grad=True, device=args.device)
-                            label_syn = torch.tensor([np.ones(args.ipc)*i for i in range(num_classes)], dtype=torch.long, requires_grad=False, device=args.device).view(-1) # [0,0,0, 1,1,1, ..., 9,9,9]
-                            for c in range(num_classes):
-                                image_data, _, color_data = get_images(c, args.ipc)
-                                image_syn.data[c * args.ipc:(c + 1) * args.ipc] = image_data.detach().data
-
-                        elif name == 'full':
-                            image_syn = copy.deepcopy(images_all)
-                            label_syn = copy.deepcopy(labels_all)
-                            args.num_eval = 5
 
                         
-                        else:
-                            save_path = '/home/mmoslem3/scratch/FairDD/results/' + name + '-' + fair_crt + '/'
-                            if fair_crt == 'FairDD':
-                                save_path = save_path + 'FairDD_' + name + '_' + dataset + '_ipc'  + str(args.ipc) + '/'
-                                save_path = save_path + 'res_' + name + '_' + dataset + '_ConvNet_' + str(args.ipc) + 'ip' + str(ITER) + '.pt'  
-                            
-                            elif fair_crt == 'NoFair':
-                                save_path = save_path  + name + '_' + dataset + '_ipc'  + str(args.ipc) + '/'
-                                save_path = save_path + 'res_' + name + '_' + dataset + '_ConvNet_' + str(args.ipc) + 'ipc.pt'
 
-                            elif fair_crt == 'NoOrtho':
-                                save_path = save_path + 'Fair_NoOrtho_' + name + '_' + dataset + '_ipc'  + str(args.ipc) + '/'
-                                save_path = save_path + 'res_' + name + '_' + dataset + '_ConvNet_' + str(args.ipc) + 'ip' + str(ITER) +  '.pt'
+                        # save_path = '/home/mmoslem3/scratch/FairDD/results/Mo_fair_DC_UTKface_ipc10_lambda' + str(lam) + '/' + 'res_DC_UTKface_ConvNet_10ip1000lambda' + str(lam) + '.pt'
+                        save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_CIFAR10_S_90_ConvNet_10ip150lambda0.0005.pt'
+                        save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_UTKface_ConvNet_10ip40lambda0.0005.pt'
+                        
+                        
+
                             
-                            else:
-                                pass
                                 
 
 
 
 
-                            try: 
-                                try:
-                                    checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
-                                except:
-                                    try:
-                                        checkpoint = torch.load(save_path.replace('1000', '700'), map_location=args.device, weights_only=False)
-                                    except:
-                                        checkpoint = torch.load(save_path.replace('1000', '600'), map_location=args.device, weights_only=False)
+                        try: 
+                            checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
+                            print('\n\n ++++++ Load synthetic data from %s +++++\n\n'%save_path)
+                        except:
+                            print('\n\n  ------ No checkpoint found for %s ----- \n\n'%save_path)
+                            continue
 
-                                print('\n\n ++++++ Load synthetic data from %s +++++\n\n'%save_path)
+                        data_list = checkpoint['data']
+
+                        if name == 'IDC':
+                            image_syn, label_syn = data_list
+                        else:
+                            try:
+                                image_syn, label_syn = data_list[0]
                             except:
-                                print('\n\n  ------ No checkpoint found for %s ----- \n\n'%save_path)
-                                continue
-
-                            data_list = checkpoint['data']
-
-                            if name == 'IDC':
                                 image_syn, label_syn = data_list
-                            else:
-                                try:
-                                    image_syn, label_syn = data_list[0]
-                                except:
-                                    image_syn, label_syn = data_list
 
                         image_syn = image_syn.to(args.device) 
                         label_syn = label_syn.to(args.device)
@@ -230,7 +197,7 @@ def main():
 
 
 
-                            print('\n\n -------Model = %s, Method = %s,  dataset = %s, ipc = %d --------- '%(args.testMetric, fair_crt,  args.dataset, args.ipc))
+                            print('\n\n -------Model = %s, Method = Mofair,  dataset = %s, ipc = %d, lambda = %s --------- '%(args.testMetric,  args.dataset, args.ipc, str(lam)))
                             # print('Evaluate %d random %s, mean = %.4f std = %.4f\n-------------------------'%(len(accs), model_eval, np.mean(accs), np.std(accs)))
                             print('Accuracy: %0.6f ± %0.6f \nmax_Equalized_Odds: %0.6f ± %0.6f \nmean_Equalized_Odds: %0.6f ± %0.6f\nmax_Sufficiency: %0.6f ± %0.6f\nmean_Sufficiency: %0.6f ± %0.6f'%(np.mean(accs),np.std(accs),np.mean(max_Equalized_Odds_list),np.std(max_Equalized_Odds_list), np.mean(mean_Equalized_Odds_list),np.std(mean_Equalized_Odds_list), np.mean(max_Sufficiency_list),np.std(max_Sufficiency_list), np.mean(mean_Sufficiency_list),np.std(mean_Sufficiency_list)))
                             print('--------------------------------\n\n')

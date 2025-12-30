@@ -12,6 +12,41 @@ import random
 
 from utils import orthogonality_loss_from_group_grads, _sanitize_grads
 
+
+def geometric_median(points, eps=1e-6, max_iter=50):
+    """
+    points: Tensor [K, ...]  (K points, same shape)
+    returns: Tensor [...] geometric median under L2 norm
+    """
+    # Flatten everything except K for distance computations
+    K = points.shape[0]
+    flat = points.reshape(K, -1)
+
+    # init as mean
+    y = flat.mean(dim=0)
+
+    for _ in range(max_iter):
+        # distances to current estimate
+        d = torch.norm(flat - y[None, :], dim=1).clamp_min(eps)  # [K]
+        w = 1.0 / d                                              # [K]
+        y_new = (w[:, None] * flat).sum(dim=0) / w.sum()
+
+        if torch.norm(y_new - y) <= 1e-6 * torch.norm(y).clamp_min(1.0):
+            y = y_new
+            break
+        y = y_new
+
+    return y.reshape(points.shape[1:])
+
+def normalize_grad_list(grad_list, eps=1e-12):
+    # grad_list: list of tensors (layers)
+    out = []
+    for g in grad_list:
+        n = g.norm().clamp_min(eps)
+        out.append(g / n)
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser(description='Parameter Processing')
     parser.add_argument('--method', type=str, default='DC', help='DC/DSA')
@@ -27,7 +62,7 @@ def main():
     parser.add_argument('--Iteration', type=int, default=1000, help='training iterations')
     parser.add_argument('--lr_img', type=float, default=0.1, help='learning rate for updating synthetic images')
     parser.add_argument('--lr_net', type=float, default=0.01, help='learning rate for updating network parameters')
-    parser.add_argument('--batch_real', type=int, default=256, help='batch size for real data')
+    parser.add_argument('--batch_real', type=int, default=2048, help='batch size for real data')
     parser.add_argument('--batch_train', type=int, default=256, help='batch size for training networks')
     parser.add_argument('--init', type=str, default='real', help='noise/real: initialize synthetic images from random noise or randomly sampled real images.')
     parser.add_argument('--dsa_strategy', type=str, default='None', help='differentiable Siamese augmentation strategy')
@@ -35,6 +70,7 @@ def main():
     parser.add_argument('--save_path', type=str, default='result', help='path to save results')
     parser.add_argument('--dis_metric', type=str, default='ours', help='distance metric')
     parser.add_argument('--FairDD', action='store_true', help='Enable FairDD')
+    parser.add_argument('--fair_lambda', type=float, default=0.0005, help='FairDD lambda parameter')
 
 
     args = parser.parse_args()
@@ -42,8 +78,8 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = True if args.method == 'DSA' else False
-    args.FairDD = False
-
+    args.FairDD = True
+    # args.FairDD = False
 
     # if not os.path.exists(args.data_path):
     #     os.mkdir(args.data_path)
@@ -102,17 +138,24 @@ def main():
 
 
         ''' initialize the synthetic data '''
-        image_syn = torch.randn(size=(num_classes*args.ipc, channel, im_size[0], im_size[1]), dtype=torch.float, requires_grad=True, device=args.device)
-        label_syn = torch.tensor([np.ones(args.ipc)*i for i in range(num_classes)], dtype=torch.long, requires_grad=False, device=args.device).view(-1) # [0,0,0, 1,1,1, ..., 9,9,9]
-        color_syn = torch.zeros_like(label_syn)
-        if args.init == 'real':
-            print('initialize synthetic data from random real images')
-            for c in range(num_classes):
-                image_data, _, color_data = get_images(c, args.ipc)
-                image_syn.data[c * args.ipc:(c + 1) * args.ipc] = image_data.detach().data
-                color_syn.data[c * args.ipc:(c + 1) * args.ipc] = color_data.detach().data
-        else:
-            print('initialize synthetic data from random noise')
+        save_path_tmp = 'results/DC-NoOrtho/Fair_NoOrtho_DC_'+ args.dataset + '_ipc' + str(args.ipc) + '/'
+        save_path_tmp = save_path_tmp + 'res_DC_' + args.dataset + '_' + args.model +'_' + str(args.ipc) + 'ip1000.pt'
+                            
+        checkpoint = torch.load(save_path_tmp, map_location=args.device, weights_only=False)
+        data_list = checkpoint['data']
+        try:
+            image_syn, label_syn = data_list[0] 
+        except:
+            image_syn, label_syn = data_list
+
+
+        image_syn = image_syn.float().detach().requires_grad_(True)
+
+        label_syn.requires_grad_(False)
+
+        label_syn = label_syn.long()
+
+
 
 
         ''' training '''
@@ -159,7 +202,7 @@ def main():
 
                 ''' visualize and save '''
 
-                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
+                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d_Fair.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
                 image_syn_vis = copy.deepcopy(image_syn.detach().cpu())
                 for ch in range(channel):
                     image_syn_vis[:, ch] = image_syn_vis[:, ch]  * std[ch] + mean[ch]
@@ -179,7 +222,7 @@ def main():
 
 
             # for ol in range(args.outer_loop):
-            args.outer_loop = 10
+            # args.outer_loop = 20
             for ol in range(args.outer_loop):
                 
 
@@ -204,8 +247,6 @@ def main():
 
                 ''' update synthetic data '''
                 loss = torch.tensor(0.0).to(args.device)
-                L= 0 
-                L2 = 0
                 for c in range(num_classes):
                     img_real, label, color = get_images(c, args.batch_real)
                     lab_real = torch.ones((img_real.shape[0],), device=args.device, dtype=torch.long) * c
@@ -217,33 +258,59 @@ def main():
                         img_real = DiffAugment(img_real, args.dsa_strategy, seed=seed, param=args.dsa_param)
                         img_syn = DiffAugment(img_syn, args.dsa_strategy, seed=seed, param=args.dsa_param)
 
+
+
                     if args.FairDD==True:
-                        output_real = net(img_real)
-                        output_syn = net(img_syn)
-
-                        loss_syn = criterion(output_syn, lab_syn)
-                        gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
-
-                        for col in torch.unique(color):
-                            loss_real_col = criterion(output_real[color == col], lab_real[color == col])
-                            gw_real_col = torch.autograd.grad(loss_real_col, net_parameters, retain_graph=True)
-                            gw_real_col = list((_.detach().clone() for _ in gw_real_col))
-
-                            loss += match_loss(gw_syn, gw_real_col, args)
-                    else:
-                        output_real = net(img_real)
-                        loss_real = criterion(output_real, lab_real)
-                        gw_real = torch.autograd.grad(loss_real, net_parameters)
-                        gw_real = list((_.detach().clone() for _ in gw_real))
-
+                    # if False: #exp1
+                        # 1. Compute Synthetic Gradients
                         output_syn = net(img_syn)
                         loss_syn = criterion(output_syn, lab_syn)
                         gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
 
-                        loss += match_loss(gw_syn, gw_real, args)
+                        # 2. Compute Real Output (THIS WAS MISSING)
+                        output_real = net(img_real)
+
+                        # --- PREPARE REAL GRADIENTS (Handle Imbalance Here) ---
+                        unique_groups = torch.unique(color)
+                        group_grads = {}
+                        
+                        # Iterate over each group present in the current batch
+                        for grp_idx in unique_groups:
+                            mask = (color == grp_idx)
+                            if mask.sum() == 0: continue
+                            
+                            # Calculate average gradient for THIS group only
+                            # We use output_real[mask] which is now defined
+                            loss_grp = criterion(output_real[mask], lab_real[mask])
+                            g_grp = torch.autograd.grad(loss_grp, net_parameters, retain_graph=True)
+                            group_grads[grp_idx.item()] = list((_.detach().clone() for _ in g_grp))
+
+                        # 3. Construct BALANCED Real Gradient Target
+                        gw_real_balanced = []
+                        if len(group_grads) > 0:
+                            for i in range(len(gw_syn)): # Iterate over layers
+                                # Stack gradients from all groups for this layer
+                                layer_grads = [group_grads[k][i] for k in group_grads]
+                                # Take the mean across groups (giving them equal weight)
+                                gw_real_balanced.append(torch.stack(layer_grads).mean(dim=0))
+                        else:
+                            # Fallback: if no groups found (rare), use standard full-batch gradient
+                            loss_real = criterion(output_real, lab_real)
+                            gw_real_fallback = torch.autograd.grad(loss_real, net_parameters, retain_graph=True)
+                            gw_real_balanced = list((_.detach().clone() for _ in gw_real_fallback))
+
+                        # 4. Calculate Task Fidelity Loss (Using Balanced Target)
+                        loss += match_loss(gw_syn, gw_real_balanced, args)
+
+
+
+
+  
+
 
                 optimizer_img.zero_grad()
                 loss.backward()
+                
                 optimizer_img.step()
                 loss_avg += loss.item()
 
@@ -259,31 +326,22 @@ def main():
                     epoch('train', trainloader, net, optimizer_net, criterion, args, aug = True if args.dsa else False)
 
 
+
+
+
             loss_avg /= (num_classes*args.outer_loop)
-
-            # L /= (num_classes*args.outer_loop)
-            # L2 /= (num_classes*args.outer_loop)
-            # print(L, L2)
-
-
-
-
-            # if it%10 == 0:
 
 
             print('%s iter = %04d, loss = %.4f' % (get_time(), it, loss_avg))
 
 
-            save_every = max(1, args.Iteration // 10)
-
+            # save_every = max(1, args.Iteration // 10)
             # if it % save_every == 0 or it == args.Iteration:
-            if it == args.Iteration:
-            # if it == args.Iteration //10: # only record the final results
-                # data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                # torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration)))
-                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip.pt'%(args.method, args.dataset, args.model, args.ipc)))
-                print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration))))
+            if it == args.Iteration: # only record the final results
+                data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
+                # data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
+                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%dlambda%s.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration,str(args.fair_lambda))))
+                print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip.pt'%(args.method, args.dataset, args.model, args.ipc))))
 
 
     print('\n==================== Final Results ====================\n')

@@ -84,6 +84,7 @@ def UTKFaceDataset(data_dir="./data/UTKFace", transform=None):
     data_dir_1 = '/mnt/DatasetCondensation-master/data/UTKFace'
     data_dir_2 = '/remote-home/iot_fangshenhao/DatasetCondensation-master/data/UTKFace'
     data_dir_3 = '/remote-home/share/Fisher1/DatasetCondensation-master/data/UTKFace'
+    data_dir_3 = '/tmp/FairDD/data/UTKFace'
 
     if os.path.exists(data_dir_1):
         data_dir = data_dir_1

@@ -1,0 +1,114 @@
+
+
+ -------Model = DC, Method = NoFair,  dataset = UTKface, ipc = 10 --------- 
+Accuracy: 59.824500 ± 3.719108 
+max_Equalized_Odds: 49.800000 ± 4.365776 
+mean_Equalized_Odds: 29.132500 ± 3.996027
+max_Sufficiency: 22.359000 ± 2.790027
+mean_Sufficiency: 16.803500 ± 1.761083
+--------------------------------
+
+ -------Model = DC, Method = NoFair,  dataset = UTKface, ipc = 50 --------- 
+Accuracy: 70.403500 ± 1.030487 
+max_Equalized_Odds: 51.600000 ± 1.854724 
+mean_Equalized_Odds: 32.966500 ± 2.231018
+max_Sufficiency: 32.602500 ± 2.224232
+mean_Sufficiency: 26.848500 ± 1.733116
+--------------------------------
+
+ -------Model = DC, Method = NoFair,  dataset = UTKface, ipc = 100 --------- 
+Accuracy: 70.624500 ± 1.222103 
+max_Equalized_Odds: 46.150000 ± 2.688401 
+mean_Equalized_Odds: 31.933000 ± 1.884046
+max_Sufficiency: 30.983000 ± 2.824783
+mean_Sufficiency: 21.612000 ± 1.223379
+--------------------------------
+
+
+
+
+
+ -------Model = DC, Method = FairDD,  dataset = UTKface, ipc = 10 --------- 
+Accuracy: 60.195500 ± 4.018301 
+max_Equalized_Odds: 44.900000 ± 4.559605 
+mean_Equalized_Odds: 22.484000 ± 1.217819
+max_Sufficiency: 21.445500 ± 2.371743
+mean_Sufficiency: 17.162000 ± 2.090104
+--------------------------------
+
+ -------Model = DC, Method = FairDD,  dataset = UTKface, ipc = 50 --------- 
+Accuracy: 70.908500 ± 1.722505 
+max_Equalized_Odds: 37.800000 ± 3.682391 
+mean_Equalized_Odds: 23.099500 ± 1.810769
+max_Sufficiency: 30.670500 ± 3.870276
+mean_Sufficiency: 23.811000 ± 1.852744
+--------------------------------
+
+
+
+
+
+ -------Model = DC, Method = NoOrtho,  dataset = UTKface, ipc = 10, lambda = 0 --------- 
+Accuracy: 62.200000 ± 3.810804 
+max_Equalized_Odds: 36.650000 ± 3.305677 
+mean_Equalized_Odds: 18.918000 ± 2.807758
+max_Sufficiency: 22.236000 ± 2.894471
+mean_Sufficiency: 17.389000 ± 2.336713
+--------------------------------
+
+-------Model = DC, Method = Mofair,  dataset = UTKface, ipc = 1, lambda = 0.0001 --------- 
+Accuracy: 62.342500 ± 3.709430 
+max_Equalized_Odds: 39.050000 ± 4.727314 
+mean_Equalized_Odds: 20.584000 ± 2.300255
+max_Sufficiency: 23.558500 ± 3.418102
+mean_Sufficiency: 19.082500 ± 2.786194
+--------------------------------
+
+ -------Model = DC, Method = Mofair,  dataset = UTKface, ipc = 1, lambda = 0.0005 --------- 
+Accuracy: 60.145500 ± 3.452562 
+max_Equalized_Odds: 33.800000 ± 2.874022 
+mean_Equalized_Odds: 18.966500 ± 2.165332
+max_Sufficiency: 19.310000 ± 2.861143
+mean_Sufficiency: 16.096000 ± 2.023404
+--------------------------------
+
+ -------Model = DC, Method = Mofair,  dataset = UTKface, ipc = 1, lambda = 0.001 --------- 
+Accuracy: 63.350500 ± 3.747124 
+max_Equalized_Odds: 38.800000 ± 3.009983 
+mean_Equalized_Odds: 20.016000 ± 1.435261
+max_Sufficiency: 22.716000 ± 3.465361
+mean_Sufficiency: 18.006500 ± 2.382724
+--------------------------------
+
+ -------Model = DC, Method = Mofair,  dataset = UTKface, ipc = 1, lambda = 0.005 --------- 
+Accuracy: 62.637500 ± 4.028730 
+max_Equalized_Odds: 37.100000 ± 5.402777 
+mean_Equalized_Odds: 19.334000 ± 2.651919
+max_Sufficiency: 22.081000 ± 4.007478
+mean_Sufficiency: 17.282500 ± 3.168724
+--------------------------------
+
+ -------Model = DC, Method = Mofair,  dataset = UTKface, ipc = 1, lambda = 0.01 --------- 
+Accuracy: 60.695500 ± 3.940240 
+max_Equalized_Odds: 33.150000 ± 5.331745 
+mean_Equalized_Odds: 17.900500 ± 3.168543
+max_Sufficiency: 20.935500 ± 3.476368
+mean_Sufficiency: 16.297000 ± 3.168516
+--------------------------------
+
+ -------Model = DC, Method = Mofair,  dataset = UTKface, ipc = 1, lambda = 0.05 --------- 
+Accuracy: 63.800000 ± 3.562004 
+max_Equalized_Odds: 38.200000 ± 4.019950 
+mean_Equalized_Odds: 19.566500 ± 1.941356
+max_Sufficiency: 22.805500 ± 1.946054
+mean_Sufficiency: 18.088500 ± 1.842686
+--------------------------------
+
+
+ -------Model = DC, Method = Mofair,  dataset = UTKface, ipc = 1, lambda = 0.1 --------- 
+Accuracy: 63.988500 ± 3.849311 
+max_Equalized_Odds: 42.650000 ± 4.407664 
+mean_Equalized_Odds: 20.950000 ± 2.475223
+max_Sufficiency: 23.126500 ± 2.865343
+mean_Sufficiency: 18.146000 ± 2.200705
+--------------------------------

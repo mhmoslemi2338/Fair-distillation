@@ -27,7 +27,7 @@ def main():
     parser.add_argument('--Iteration', type=int, default=1000, help='training iterations')
     parser.add_argument('--lr_img', type=float, default=0.1, help='learning rate for updating synthetic images')
     parser.add_argument('--lr_net', type=float, default=0.01, help='learning rate for updating network parameters')
-    parser.add_argument('--batch_real', type=int, default=256, help='batch size for real data')
+    parser.add_argument('--batch_real', type=int, default=2048, help='batch size for real data')
     parser.add_argument('--batch_train', type=int, default=256, help='batch size for training networks')
     parser.add_argument('--init', type=str, default='real', help='noise/real: initialize synthetic images from random noise or randomly sampled real images.')
     parser.add_argument('--dsa_strategy', type=str, default='None', help='differentiable Siamese augmentation strategy')
@@ -35,6 +35,7 @@ def main():
     parser.add_argument('--save_path', type=str, default='result', help='path to save results')
     parser.add_argument('--dis_metric', type=str, default='ours', help='distance metric')
     parser.add_argument('--FairDD', action='store_true', help='Enable FairDD')
+    parser.add_argument('--fair_lambda', type=float, default=0.0005, help='FairDD lambda parameter')
 
 
     args = parser.parse_args()
@@ -42,8 +43,8 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = True if args.method == 'DSA' else False
-    args.FairDD = False
-
+    args.FairDD = True
+    # args.FairDD = False
 
     # if not os.path.exists(args.data_path):
     #     os.mkdir(args.data_path)
@@ -102,17 +103,24 @@ def main():
 
 
         ''' initialize the synthetic data '''
-        image_syn = torch.randn(size=(num_classes*args.ipc, channel, im_size[0], im_size[1]), dtype=torch.float, requires_grad=True, device=args.device)
-        label_syn = torch.tensor([np.ones(args.ipc)*i for i in range(num_classes)], dtype=torch.long, requires_grad=False, device=args.device).view(-1) # [0,0,0, 1,1,1, ..., 9,9,9]
-        color_syn = torch.zeros_like(label_syn)
-        if args.init == 'real':
-            print('initialize synthetic data from random real images')
-            for c in range(num_classes):
-                image_data, _, color_data = get_images(c, args.ipc)
-                image_syn.data[c * args.ipc:(c + 1) * args.ipc] = image_data.detach().data
-                color_syn.data[c * args.ipc:(c + 1) * args.ipc] = color_data.detach().data
-        else:
-            print('initialize synthetic data from random noise')
+        save_path_tmp = 'results/DC-NoOrtho/Fair_NoOrtho_DC_'+ args.dataset + '_ipc' + str(args.ipc) + '/'
+        save_path_tmp = save_path_tmp + 'res_DC_' + args.dataset + '_' + args.model +'_' + str(args.ipc) + 'ip1000.pt'
+                            
+        checkpoint = torch.load(save_path_tmp, map_location=args.device, weights_only=False)
+        data_list = checkpoint['data']
+        try:
+            image_syn, label_syn = data_list[0] 
+        except:
+            image_syn, label_syn = data_list
+
+
+        image_syn = image_syn.float().detach().requires_grad_(True)
+
+        label_syn.requires_grad_(False)
+
+        label_syn = label_syn.long()
+
+
 
 
         ''' training '''
@@ -159,7 +167,7 @@ def main():
 
                 ''' visualize and save '''
 
-                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
+                save_name = os.path.join(args.save_path, 'vis_%s_%s_%s_%dipc_exp%d_iter%d_Fair.png'%(args.method, args.dataset, args.model, args.ipc, exp, it))
                 image_syn_vis = copy.deepcopy(image_syn.detach().cpu())
                 for ch in range(channel):
                     image_syn_vis[:, ch] = image_syn_vis[:, ch]  * std[ch] + mean[ch]
@@ -179,7 +187,7 @@ def main():
 
 
             # for ol in range(args.outer_loop):
-            args.outer_loop = 10
+            # args.outer_loop = 20
             for ol in range(args.outer_loop):
                 
 
@@ -204,8 +212,6 @@ def main():
 
                 ''' update synthetic data '''
                 loss = torch.tensor(0.0).to(args.device)
-                L= 0 
-                L2 = 0
                 for c in range(num_classes):
                     img_real, label, color = get_images(c, args.batch_real)
                     lab_real = torch.ones((img_real.shape[0],), device=args.device, dtype=torch.long) * c
@@ -217,33 +223,144 @@ def main():
                         img_real = DiffAugment(img_real, args.dsa_strategy, seed=seed, param=args.dsa_param)
                         img_syn = DiffAugment(img_syn, args.dsa_strategy, seed=seed, param=args.dsa_param)
 
-                    if args.FairDD==True:
-                        output_real = net(img_real)
-                        output_syn = net(img_syn)
 
-                        loss_syn = criterion(output_syn, lab_syn)
-                        gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+                    # 1. Synthetic gradients (same)
+                    output_syn = net(img_syn)
+                    loss_syn = criterion(output_syn, lab_syn)
+                    gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
 
-                        for col in torch.unique(color):
-                            loss_real_col = criterion(output_real[color == col], lab_real[color == col])
-                            gw_real_col = torch.autograd.grad(loss_real_col, net_parameters, retain_graph=True)
-                            gw_real_col = list((_.detach().clone() for _ in gw_real_col))
+                    # 2. Real forward (same)
+                    output_real = net(img_real)
 
-                            loss += match_loss(gw_syn, gw_real_col, args)
-                    else:
-                        output_real = net(img_real)
-                        loss_real = criterion(output_real, lab_real)
-                        gw_real = torch.autograd.grad(loss_real, net_parameters)
-                        gw_real = list((_.detach().clone() for _ in gw_real))
+                    # --- CLASS-CONDITIONAL REAL GRADS ---
+                    unique_groups = torch.unique(color)
+                    unique_labels = torch.unique(lab_real)
 
-                        output_syn = net(img_syn)
-                        loss_syn = criterion(output_syn, lab_syn)
-                        gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+                    # Store gradients keyed by (y, grp)
+                    # grads_y_grp[(y, grp)] = list of tensors (same structure as net_parameters)
+                    grads_y_grp = {}
 
-                        loss += match_loss(gw_syn, gw_real, args)
+                    for y in unique_labels:
+                        mask_y = (lab_real == y)
+                        if mask_y.sum() == 0:
+                            continue
+
+                        for grp_idx in unique_groups:
+                            mask = mask_y & (color == grp_idx)
+                            n = int(mask.sum().item())
+                            if n == 0:
+                                continue
+
+                            # loss over real samples with fixed (y, group)
+                            loss_grp_y = criterion(output_real[mask], lab_real[mask])
+                            g_grp_y = torch.autograd.grad(loss_grp_y, net_parameters, retain_graph=True)
+
+                            # detach because this is only defining the constraint subspace
+                            grads_y_grp[(int(y.item()), int(grp_idx.item()))] = [gg.detach() for gg in g_grp_y]
+
+                    # --- ORTHOGONALITY CONSTRAINT: sum over labels, then group pairs ---
+                    ortho_loss = torch.tensor(0.0, device=args.device)
+
+                    # precompute synthetic norm for cosine-style normalization
+                    gw_norm_sq = sum((g**2).sum() for g in gw_syn) + 1e-12
+
+                    epsilon = 1e-8  # you can tune this
+                    for y in unique_labels.tolist():
+                        # groups that actually have samples for this label
+                        groups_for_y = [g for g in unique_groups.tolist() if (int(y), int(g)) in grads_y_grp]
+                        if len(groups_for_y) <= 1:
+                            continue
+
+                        for i in range(len(groups_for_y)):
+                            for j in range(i + 1, len(groups_for_y)):
+                                g_a = grads_y_grp[(int(y), int(groups_for_y[i]))]
+                                g_b = grads_y_grp[(int(y), int(groups_for_y[j]))]
+
+                                # ||g_a - g_b||^2
+                                diff_norm_sq = torch.tensor(0.0, device=args.device)
+                                for k in range(len(g_a)):
+                                    diff = g_a[k] - g_b[k]
+                                    diff_norm_sq += (diff * diff).sum()
+
+                                if diff_norm_sq <= epsilon:
+                                    continue
+
+                                # <gw_syn, g_a - g_b>
+                                dot_prod = torch.tensor(0.0, device=args.device)
+                                for k in range(len(gw_syn)):
+                                    diff = g_a[k] - g_b[k]
+                                    dot_prod += (gw_syn[k] * diff).sum()
+
+                                # cosine^2 penalty
+                                ortho_loss += (dot_prod ** 2) / ((diff_norm_sq + 1e-12) * gw_norm_sq)
+
+                    # add only orthogonal loss (as you requested)
+                    loss = loss + ortho_loss
+
+
+                    # # 1. Compute Synthetic Gradients
+                    # output_syn = net(img_syn)
+                    # loss_syn = criterion(output_syn, lab_syn)
+                    # gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+
+                    # # 2. Compute Real Output (THIS WAS MISSING)
+                    # output_real = net(img_real)
+
+                    # # --- PREPARE REAL GRADIENTS (Handle Imbalance Here) ---
+                    # unique_groups = torch.unique(color)
+                    # group_grads = {}
+                    
+                    # # Iterate over each group present in the current batch
+                    # for grp_idx in unique_groups:
+                    #     mask = (color == grp_idx)
+                    #     if mask.sum() == 0: continue
+                        
+                    #     # Calculate average gradient for THIS group only
+                    #     # We use output_real[mask] which is now defined
+                    #     loss_grp = criterion(output_real[mask], lab_real[mask])
+                    #     g_grp = torch.autograd.grad(loss_grp, net_parameters, retain_graph=True)
+                    #     group_grads[grp_idx.item()] = list((_.detach().clone() for _ in g_grp))
+
+
+
+                    # # 5. Calculate Orthogonality/Fairness Constraint
+                    # if len(unique_groups) > 1:
+                    #     ortho_loss = torch.tensor(0.0).to(args.device)
+                    #     groups_list = list(group_grads.keys())
+                        
+                    #     for i in range(len(groups_list)):
+                    #         for j in range(i + 1, len(groups_list)):
+
+                    #             # ... inside the group loops ...
+                    #             g_a = group_grads[groups_list[i]]
+                    #             g_b = group_grads[groups_list[j]]
+                                
+                    #             # Calculate the magnitude (squared L2 norm) of the difference vector first
+                    #             diff_norm_sq = torch.tensor(0.0).to(args.device)
+                    #             for k in range(len(g_a)):
+                    #                 diff = g_a[k] - g_b[k]
+                    #                 diff_norm_sq += torch.sum(diff ** 2)
+                                
+                    #             epsilon = 1e-2
+                    #             if diff_norm_sq > epsilon:
+                    #                 dot_prod = torch.tensor(0.0).to(args.device)
+                    #                 for k in range(len(gw_syn)):
+                    #                     diff = g_a[k] - g_b[k]
+                    #                     dot_prod += torch.sum(gw_syn[k] * diff)
+                                    
+
+                    #                 gw_norm_sq = sum((g**2).sum() for g in gw_syn) + 1e-12
+                    #                 ortho_loss += (dot_prod ** 2) / ((diff_norm_sq + 1e-12) * gw_norm_sq)
+                        
+                    #     loss +=  ortho_loss
+
+
+
+
 
                 optimizer_img.zero_grad()
                 loss.backward()
+                
                 optimizer_img.step()
                 loss_avg += loss.item()
 
@@ -259,31 +376,22 @@ def main():
                     epoch('train', trainloader, net, optimizer_net, criterion, args, aug = True if args.dsa else False)
 
 
+
+
+
             loss_avg /= (num_classes*args.outer_loop)
-
-            # L /= (num_classes*args.outer_loop)
-            # L2 /= (num_classes*args.outer_loop)
-            # print(L, L2)
-
-
-
-
-            # if it%10 == 0:
 
 
             print('%s iter = %04d, loss = %.4f' % (get_time(), it, loss_avg))
 
 
-            save_every = max(1, args.Iteration // 10)
-
+            # save_every = max(1, args.Iteration // 10)
             # if it % save_every == 0 or it == args.Iteration:
-            if it == args.Iteration:
-            # if it == args.Iteration //10: # only record the final results
-                # data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                # torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration)))
-                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip.pt'%(args.method, args.dataset, args.model, args.ipc)))
-                print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration))))
+            if it == args.Iteration: # only record the final results
+                data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
+                # data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
+                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%dlambda%s.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration,str(args.fair_lambda))))
+                print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip.pt'%(args.method, args.dataset, args.model, args.ipc))))
 
 
     print('\n==================== Final Results ====================\n')

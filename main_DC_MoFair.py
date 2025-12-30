@@ -269,10 +269,6 @@ def main():
 
                                     # ... inside the group loops ...
                                     g_a = group_grads[groups_list[i]]
-                                    # print('\n\n\n\n\n')
-                                    # print(len(g_a))
-                                    # print(g_a[0].shape)
-                                    # print('\n\n\n\n\n')
                                     g_b = group_grads[groups_list[j]]
                                     
                                     # Calculate the magnitude (squared L2 norm) of the difference vector first
@@ -359,7 +355,7 @@ def main():
             if it == args.Iteration: # only record the final results
                 data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 # data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
-                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%d.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration)))
+                torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%dlambda%s.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration,str(args.fair_lambda))))
                 print('save synthetic data to %s'%(os.path.join(args.save_path, 'res_%s_%s_%s_%dip.pt'%(args.method, args.dataset, args.model, args.ipc))))
 
 

@@ -260,9 +260,9 @@ def main():
 
             loss_avg /= (num_classes*args.outer_loop)
 
-            L /= (num_classes*args.outer_loop)
-            L2 /= (num_classes*args.outer_loop)
-            print(L, L2)
+            # L /= (num_classes*args.outer_loop)
+            # L2 /= (num_classes*args.outer_loop)
+            # print(L, L2)
 
 
 

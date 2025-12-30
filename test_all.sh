@@ -13,28 +13,27 @@ set -e
 
 # Datasets
 DATASETS=(
-  # "CIFAR10_S_90"
-  # "Colored_FashionMNIST_foreground"
-  # "Colored_FashionMNIST_background"
-  # "Colored_MNIST_foreground"
-  # "Colored_MNIST_background"
-  'UTKface'
-  
+  "CIFAR10_S_90"
+  "Colored_FashionMNIST_foreground"
+  "Colored_FashionMNIST_background"
+  "Colored_MNIST_foreground"
+  "Colored_MNIST_background"
+  "UTKface"
 )
 
-  for dataset in "${DATASETS[@]}"; do
+for dataset in "${DATASETS[@]}"; do
 
-      echo "==================================================" 
-      echo "START: dataset=${dataset}" 
-      echo "Time: $(date)" 
-      echo "==================================================" 
+    echo "==================================================" 
+    echo "START: dataset=${dataset}" 
+    echo "Time: $(date)" 
+    echo "==================================================" 
 
-      python test_fairness.py \
-        --dataset "$dataset" 
+    python test_fairness.py \
+      --dataset "$dataset" 
 
-    #   echo "" 
-    #   echo "END: dataset=${dataset}, ipc=${ipc}, metric=${metric}"
-    #   echo "" 
+  #   echo "" 
+  #   echo "END: dataset=${dataset}, ipc=${ipc}, metric=${metric}"
+  #   echo "" 
 
-    done
+  done
 
