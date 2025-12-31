@@ -567,11 +567,14 @@ def epoch_Fairness_Metric(mode, dataloader, net, criterion, args, aug):
                 eval_pred_count[g, l] += torch.sum((a == g) * (preds == l))
                 eval_true_count[g, l] += acc[(a == g) * (lab == l)].sum()
                 eval_data_count[g, l] += torch.sum((a == g) * (lab == l))
+        
         for g in range(args.num_groups):
             for l in range(args.num_classes):
                 eval_data_count[g, l] += 1e-8
+
     eval_true_count = eval_true_count / eval_data_count
     eval_max_eopp1 = torch.max(eval_true_count, dim=0)[0] - torch.min(eval_true_count, dim=0)[0]
+  
     max_Equalized_Odds = torch.max(eval_max_eopp1).item()
     mean_Equalized_Odds = torch.mean(eval_max_eopp1).item()
 

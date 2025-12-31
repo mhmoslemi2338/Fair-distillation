@@ -72,9 +72,9 @@ def main():
     
     for dataset in [
                     # "CIFAR10_S_90",
-                    "Colored_FashionMNIST_foreground",
+                    # "Colored_FashionMNIST_foreground",
                     "Colored_FashionMNIST_background",
-                    # "Colored_MNIST_foreground",
+                    "Colored_MNIST_foreground",
                     # "Colored_MNIST_background",
                     # "UTKface"
                     ]:
@@ -173,7 +173,10 @@ def main():
                                     try:
                                         checkpoint = torch.load(save_path.replace('1000', '700'), map_location=args.device, weights_only=False)
                                     except:
-                                        checkpoint = torch.load(save_path.replace('1000', '600'), map_location=args.device, weights_only=False)
+                                        try:
+                                            checkpoint = torch.load(save_path.replace('1000', '600'), map_location=args.device, weights_only=False)
+                                        except:
+                                            checkpoint = torch.load(save_path.replace('1000', '550'), map_location=args.device, weights_only=False)
 
                                 print('\n\n ++++++ Load synthetic data from %s +++++\n\n'%save_path)
                             except:

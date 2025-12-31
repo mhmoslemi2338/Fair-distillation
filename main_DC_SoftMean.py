@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--method', type=str, default='DC', help='DC/DSA')
     parser.add_argument('--dataset', type=str, default='CIFAR10', help='dataset')
     parser.add_argument('--model', type=str, default='ConvNet', help='model')
-    parser.add_argument('--ipc', type=int, default=1, help='image(s) per class')
+    parser.add_argument('--ipc', type=int, default=10, help='image(s) per class')
     parser.add_argument('--eval_mode', type=str, default='S', help='eval_mode') # S: the same to training model, M: multi architectures,  W: net width, D: net depth, A: activation function, P: pooling layer, N: normalization layer,
 
     parser.add_argument('--num_exp', type=int, default=1, help='the number of experiments')
@@ -35,7 +35,7 @@ def main():
     parser.add_argument('--save_path', type=str, default='result', help='path to save results')
     parser.add_argument('--dis_metric', type=str, default='ours', help='distance metric')
     parser.add_argument('--FairDD', action='store_true', help='Enable FairDD')
-    parser.add_argument('--fair_lambda', type=float, default=0.0005, help='FairDD lambda parameter')
+    parser.add_argument('--fair_lambda', type=float, default=0, help='FairDD lambda parameter')
 
 
     args = parser.parse_args()
@@ -44,16 +44,10 @@ def main():
     args.dsa_param = ParamDiffAug()
     args.dsa = True if args.method == 'DSA' else False
     args.FairDD = True
-    # args.FairDD = False
-
-    # if not os.path.exists(args.data_path):
-    #     os.mkdir(args.data_path)
 
     if not os.path.exists(args.save_path):
         os.mkdir(args.save_path)
 
-    # eval_it_pool = np.arange(0, args.Iteration+1, 500).tolist() if args.eval_mode == 'S' or args.eval_mode == 'SS' else [args.Iteration] # The list of iterations when we evaluate models and record results.
-    # eval_it_pool = [0, 1000]
     eval_it_pool = [args.Iteration]
     print('eval_it_pool: ', eval_it_pool)
     channel, im_size, num_classes, class_names, mean, std, dst_train, dst_test, testloader = get_dataset(args.dataset, args.data_path)
@@ -204,8 +198,6 @@ def main():
 
                 ''' update synthetic data '''
                 loss = torch.tensor(0.0).to(args.device)
-                L= 0 
-                L2 = 0
                 for c in range(num_classes):
                     img_real, label, color = get_images(c, args.batch_real)
                     lab_real = torch.ones((img_real.shape[0],), device=args.device, dtype=torch.long) * c
@@ -217,17 +209,17 @@ def main():
                         img_real = DiffAugment(img_real, args.dsa_strategy, seed=seed, param=args.dsa_param)
                         img_syn = DiffAugment(img_syn, args.dsa_strategy, seed=seed, param=args.dsa_param)
 
-                    if args.FairDD==True:
-                    # if False: #exp1
-                        # 1. Compute Synthetic Gradients
-                        output_syn = net(img_syn)
-                        loss_syn = criterion(output_syn, lab_syn)
-                        gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
 
-                        # 2. Compute Real Output (THIS WAS MISSING)
+                    if args.FairDD==True:
+                        # ---- in your code ----
+
+                        output_syn = net(img_syn)
                         output_real = net(img_real)
 
-                        # --- PREPARE REAL GRADIENTS (Handle Imbalance Here) ---
+                        loss_syn = criterion(output_syn, lab_syn)
+                        gw_syn = torch.autograd.grad(loss_syn, net_parameters, create_graph=True)
+                        
+
                         unique_groups = torch.unique(color)
                         group_grads = {}
                         
@@ -236,68 +228,64 @@ def main():
                             mask = (color == grp_idx)
                             if mask.sum() == 0: continue
                             
-                            # Calculate average gradient for THIS group only
-                            # We use output_real[mask] which is now defined
                             loss_grp = criterion(output_real[mask], lab_real[mask])
                             g_grp = torch.autograd.grad(loss_grp, net_parameters, retain_graph=True)
                             group_grads[grp_idx.item()] = list((_.detach().clone() for _ in g_grp))
 
-                        # 3. Construct BALANCED Real Gradient Target
-                        gw_real_balanced = []
+
+                        # store group scalars too (for softmax weights)
+                        group_losses = {}
+
+                        # Iterate over each group present in the current batch
+                        for grp_idx in unique_groups:
+                            mask = (color == grp_idx)
+                            if mask.sum() == 0:
+                                continue
+
+                            loss_grp = criterion(output_real[mask], lab_real[mask])
+                            g_grp = torch.autograd.grad(loss_grp, net_parameters, retain_graph=True)
+
+                            gid = grp_idx.item()
+                            group_grads[gid] = [_.detach().clone() for _ in g_grp]
+                            group_losses[gid] = loss_grp.detach()
+
+                        # 3) Softmax / log-sum-exp aggregation across groups
                         if len(group_grads) > 0:
-                            for i in range(len(gw_syn)): # Iterate over layers
-                                # Stack gradients from all groups for this layer
-                                layer_grads = [group_grads[k][i] for k in group_grads]
-                                # Take the mean across groups (giving them equal weight)
-                                gw_real_balanced.append(torch.stack(layer_grads).mean(dim=0))
+                            group_ids = sorted(group_grads.keys())  # stable order
+                            loss_vec = torch.stack([group_losses[g] for g in group_ids], dim=0)  # [G]
+                            tau = getattr(args, "group_tau", 1.0)  # temperature
+                            # stable softmax
+                            logits = tau * (loss_vec - loss_vec.max())
+                            w = torch.softmax(logits, dim=0).detach()  # [G]
+
+                            gw_real_soft = []
+                            for i in range(len(gw_syn)):  # layer index
+                                layer_grads = torch.stack(
+                                    [group_grads[g][i] for g in group_ids], dim=0
+                                )  # [G, ...]
+
+                                # optional: normalize each group's layer-grad to reduce cancellation
+                                if getattr(args, "group_grad_norm", False):
+                                    eps = 1e-12
+                                    flat = layer_grads.view(layer_grads.size(0), -1)
+                                    norms = flat.norm(dim=1).clamp_min(eps)  # [G]
+                                    layer_grads = layer_grads / norms.view(
+                                        -1, *([1] * (layer_grads.dim() - 1))
+                                    )
+
+                                w_view = w.view(-1, *([1] * (layer_grads.dim() - 1)))
+                                gw_real_soft.append((w_view * layer_grads).sum(dim=0))
+
                         else:
-                            # Fallback: if no groups found (rare), use standard full-batch gradient
+                            # fallback if no groups found (rare)
                             loss_real = criterion(output_real, lab_real)
                             gw_real_fallback = torch.autograd.grad(loss_real, net_parameters, retain_graph=True)
-                            gw_real_balanced = list((_.detach().clone() for _ in gw_real_fallback))
+                            gw_real_soft = [_.detach().clone() for _ in gw_real_fallback]
 
-                        # 4. Calculate Task Fidelity Loss (Using Balanced Target)
-                        loss += match_loss(gw_syn, gw_real_balanced, args)
+                        # 4) Match synthetic grads to soft-aggregated real grads
+                        loss += match_loss(gw_syn, gw_real_soft, args)
 
-                        # # 5. Calculate Orthogonality/Fairness Constraint
-                        # if len(unique_groups) > 1:
-                        #     ortho_loss = torch.tensor(0.0).to(args.device)
-                        #     groups_list = list(group_grads.keys())
-                            
-                        #     for i in range(len(groups_list)):
-                        #         for j in range(i + 1, len(groups_list)):
 
-                        #             # ... inside the group loops ...
-                        #             g_a = group_grads[groups_list[i]]
-                        #             g_b = group_grads[groups_list[j]]
-                                    
-                        #             # Calculate the magnitude (squared L2 norm) of the difference vector first
-                        #             diff_norm_sq = torch.tensor(0.0).to(args.device)
-                        #             for k in range(len(g_a)):
-                        #                 diff = g_a[k] - g_b[k]
-                        #                 diff_norm_sq += torch.sum(diff ** 2)
-                                    
-                        #             # Define a threshold (epsilon). 
-                        #             # If the groups disagree by less than this, ignore it.
-                        #             # This prevents penalizing when gradients are effectively identical.
-                        #             epsilon = 1e-5
-                        #             if diff_norm_sq > epsilon:
-                        #                 dot_prod = torch.tensor(0.0).to(args.device)
-                        #                 for k in range(len(gw_syn)):
-                        #                     diff = g_a[k] - g_b[k]
-                        #                     dot_prod += torch.sum(gw_syn[k] * diff)
-                                        
-                        #                 # Normalize the penalty? (Optional but recommended)
-                        #                 # Dividing by diff_norm_sq makes the penalty purely about DIRECTION, 
-                        #                 # not magnitude of the disagreement.
-                        #                 ortho_loss += (dot_prod ** 2) / (diff_norm_sq + 1e-12)
-                                        
-                                        # Or keep your original un-normalized version:
-                                        # ortho_loss += dot_prod ** 2
-                            
-                            # fair_lambda = 0.0005
-                            # fair_lambda = args.fair_lambda
-                            # loss += fair_lambda * ortho_loss
 
 
 
@@ -351,8 +339,8 @@ def main():
 
 
             # save_every = max(1, args.Iteration // 10)
-            # if it % save_every == 0 or it == args.Iteration:
-            if it == args.Iteration: # only record the final results
+            if it % 50 == 0 or it == args.Iteration:
+            # if it == args.Iteration: # only record the final results
                 data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 # data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%dlambda%s.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration,str(args.fair_lambda))))

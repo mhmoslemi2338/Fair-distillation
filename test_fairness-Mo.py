@@ -37,7 +37,7 @@ def main():
     parser.add_argument('--method', type=str, default='DC', help='DC/DSA')
     parser.add_argument('--dataset', type=str, default='CIFAR10', help='dataset')
     parser.add_argument('--model', type=str, default='ConvNet', help='model')
-    parser.add_argument('--ipc', type=int, default=1, help='image(s) per class')
+    parser.add_argument('--ipc', type=int, default=10, help='image(s) per class')
     parser.add_argument('--eval_mode', type=str, default='S', help='eval_mode') # S: the same to training model, M: multi architectures,  W: net width, D: net depth, A: activation function, P: pooling layer, N: normalization layer,
 
     parser.add_argument('--num_exp', type=int, default=1, help='the number of experiments')
@@ -129,9 +129,10 @@ def main():
                         
 
                         # save_path = '/home/mmoslem3/scratch/FairDD/results/Mo_fair_DC_UTKface_ipc10_lambda' + str(lam) + '/' + 'res_DC_UTKface_ConvNet_10ip1000lambda' + str(lam) + '.pt'
-                        save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_CIFAR10_S_90_ConvNet_10ip150lambda0.0005.pt'
-                        save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_UTKface_ConvNet_10ip40lambda0.0005.pt'
-                        
+                        # save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_CIFAR10_S_90_ConvNet_10ip150lambda0.0005.pt'
+                        # save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_UTKface_ConvNet_10ip100lambda0.0005.pt'
+                        save_path = '/home/mmoslem3/scratch/FairDD/result/res_DC_UTKface_ConvNet_10ip1000lambda0.0.pt'
+                        # 
                         
 
                             

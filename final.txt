@@ -124,6 +124,14 @@ max_Sufficiency: 88.929000 ± 21.314708
 mean_Sufficiency: 22.719000 ± 3.831498
 --------------------------------
 
+ -------Model = DC, Method = NoOrtho,  dataset = Colored_FashionMNIST_foreground, ipc = 100 --------- 
+Accuracy: 79.607000 ± 0.354275 
+max_Equalized_Odds: 29.700000 ± 5.514526 
+mean_Equalized_Odds: 13.995000 ± 1.281981
+max_Sufficiency: 29.943000 ± 6.405841
+mean_Sufficiency: 14.532500 ± 0.971514
+--------------------------------
+
 
 
  -------Model = DC, Method = FairDD,  dataset = Colored_FashionMNIST_foreground, ipc = 10 --------- 
@@ -140,6 +148,15 @@ max_Equalized_Odds: 51.050000 ± 7.658166
 mean_Equalized_Odds: 22.710000 ± 1.546900
 max_Sufficiency: 66.434500 ± 30.094452
 mean_Sufficiency: 22.568500 ± 3.653057
+--------------------------------
+
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_FashionMNIST_foreground, ipc = 100 --------- 
+Accuracy: 73.244500 ± 1.270344 
+max_Equalized_Odds: 67.550000 ± 15.193666 
+mean_Equalized_Odds: 24.580000 ± 2.655297
+max_Sufficiency: 40.476000 ± 16.134545
+mean_Sufficiency: 20.469000 ± 2.132817
 --------------------------------
 
 
@@ -173,6 +190,7 @@ mean_Sufficiency: 66.543000 ± 3.696797
 
 
 
+
  -------Model = DC, Method = NoOrtho,  dataset = Colored_FashionMNIST_background, ipc = 10 --------- 
 Accuracy: 70.142500 ± 0.293477 
 max_Equalized_Odds: 32.850000 ± 4.315959 
@@ -188,6 +206,43 @@ mean_Equalized_Odds: 13.140000 ± 0.976934
 max_Sufficiency: 82.463000 ± 19.495936
 mean_Sufficiency: 20.105000 ± 2.356800
 --------------------------------
+
+ -------Model = DC, Method = NoOrtho,  dataset = Colored_FashionMNIST_background, ipc = 100 --------- 
+Accuracy: 75.418000 ± 0.373786 
+max_Equalized_Odds: 31.100000 ± 5.734980 
+mean_Equalized_Odds: 15.710000 ± 1.099955
+max_Sufficiency: 44.328000 ± 12.759100
+mean_Sufficiency: 18.341000 ± 1.789659
+--------------------------------
+
+
+
+
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_FashionMNIST_background, ipc = 10 --------- 
+Accuracy: 68.206500 ± 0.464277 
+max_Equalized_Odds: 65.350000 ± 6.207052 
+mean_Equalized_Odds: 35.235000 ± 1.676686
+max_Sufficiency: 46.629500 ± 5.962114
+mean_Sufficiency: 23.578000 ± 1.554547
+--------------------------------
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_FashionMNIST_background, ipc = 50 --------- 
+Accuracy: 75.342000 ± 0.377301 
+max_Equalized_Odds: 47.950000 ± 4.620335 
+mean_Equalized_Odds: 25.960000 ± 1.692454
+max_Sufficiency: 37.020500 ± 4.293238
+mean_Sufficiency: 23.489500 ± 1.340975
+--------------------------------
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_FashionMNIST_background, ipc = 100 --------- 
+Accuracy: 70.903500 ± 0.335995 
+max_Equalized_Odds: 51.300000 ± 5.129327 
+mean_Equalized_Odds: 23.025000 ± 1.992705
+max_Sufficiency: 81.179000 ± 19.460541
+mean_Sufficiency: 28.385500 ± 1.691693
+--------------------------------
+
 
 
 ------------------------------------------------------------------------------------------------------------
@@ -234,6 +289,17 @@ mean_Equalized_Odds: 5.319500 ± 0.242868
 max_Sufficiency: 12.497000 ± 1.409458
 mean_Sufficiency: 6.424500 ± 0.326902
 --------------------------------
+
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_foreground, ipc = 10 --------- 
+Accuracy: 90.858500 ± 0.244750 
+max_Equalized_Odds: 24.615500 ± 3.684490 
+mean_Equalized_Odds: 10.803000 ± 0.792030
+max_Sufficiency: 17.050000 ± 2.182311
+mean_Sufficiency: 11.180000 ± 0.743384
+--------------------------------
+
+
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -354,4 +420,12 @@ max_Equalized_Odds: 30.700000 ± 3.620773
 mean_Equalized_Odds: 19.099500 ± 1.822848
 max_Sufficiency: 30.200000 ± 2.852895
 mean_Sufficiency: 22.459000 ± 1.324798
+--------------------------------
+
+ -------Model = DC, Method = NoOrtho,  dataset = UTKface, ipc = 100 --------- 
+Accuracy: 69.409500 ± 3.028263 
+max_Equalized_Odds: 28.300000 ± 4.680812 
+mean_Equalized_Odds: 22.150000 ± 3.122651
+max_Sufficiency: 32.294500 ± 5.169618
+mean_Sufficiency: 21.969000 ± 2.902859
 --------------------------------

@@ -35,7 +35,7 @@ def main():
     parser.add_argument('--save_path', type=str, default='result', help='path to save results')
     parser.add_argument('--dis_metric', type=str, default='ours', help='distance metric')
     parser.add_argument('--FairDD', action='store_true', help='Enable FairDD')
-    parser.add_argument('--fair_lambda', type=float, default=0.0005, help='FairDD lambda parameter')
+    parser.add_argument('--fair_lambda', type=float, default=0, help='FairDD lambda parameter')
 
 
     args = parser.parse_args()

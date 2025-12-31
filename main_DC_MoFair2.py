@@ -102,18 +102,37 @@ def main():
             print('real images channel %d, mean = %.4f, std = %.4f'%(ch, torch.mean(images_all[:, ch]), torch.std(images_all[:, ch])))
 
 
-        ''' initialize the synthetic data '''
-        image_syn = torch.randn(size=(num_classes*args.ipc, channel, im_size[0], im_size[1]), dtype=torch.float, requires_grad=True, device=args.device)
-        label_syn = torch.tensor([np.ones(args.ipc)*i for i in range(num_classes)], dtype=torch.long, requires_grad=False, device=args.device).view(-1) # [0,0,0, 1,1,1, ..., 9,9,9]
-        color_syn = torch.zeros_like(label_syn)
-        if args.init == 'real':
-            print('initialize synthetic data from random real images')
-            for c in range(num_classes):
-                image_data, _, color_data = get_images(c, args.ipc)
-                image_syn.data[c * args.ipc:(c + 1) * args.ipc] = image_data.detach().data
-                color_syn.data[c * args.ipc:(c + 1) * args.ipc] = color_data.detach().data
-        else:
-            print('initialize synthetic data from random noise')
+        # ''' initialize the synthetic data '''
+        # image_syn = torch.randn(size=(num_classes*args.ipc, channel, im_size[0], im_size[1]), dtype=torch.float, requires_grad=True, device=args.device)
+        # label_syn = torch.tensor([np.ones(args.ipc)*i for i in range(num_classes)], dtype=torch.long, requires_grad=False, device=args.device).view(-1) # [0,0,0, 1,1,1, ..., 9,9,9]
+        # color_syn = torch.zeros_like(label_syn)
+        # if args.init == 'real':
+        #     print('initialize synthetic data from random real images')
+        #     for c in range(num_classes):
+        #         image_data, _, color_data = get_images(c, args.ipc)
+        #         image_syn.data[c * args.ipc:(c + 1) * args.ipc] = image_data.detach().data
+        #         color_syn.data[c * args.ipc:(c + 1) * args.ipc] = color_data.detach().data
+        # else:
+        #     print('initialize synthetic data from random noise')
+
+        
+
+        # ''' initialize the synthetic data '''
+        save_path_tmp = '/home/mmoslem3/scratch/FairDD/results/DC-NoOrtho/Fair_NoOrtho_DC_UTKface_ipc100/res_DC_UTKface_ConvNet_100ip550.pt'
+        checkpoint = torch.load(save_path_tmp, map_location=args.device, weights_only=False)
+        data_list = checkpoint['data']
+        try:
+            image_syn, label_syn = data_list[0] 
+        except:
+            image_syn, label_syn = data_list
+
+
+        image_syn = image_syn.float().detach().requires_grad_(True)
+        label_syn.requires_grad_(False)
+        label_syn = label_syn.long()
+
+
+
 
 
         ''' training '''
@@ -352,7 +371,7 @@ def main():
 
             # save_every = max(1, args.Iteration // 10)
             # if it % save_every == 0 or it == args.Iteration:
-            if it == args.Iteration: # only record the final results
+            if it == args.Iteration or it %50  == 0: # only record the final results
                 data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 # data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%dlambda%s.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration,str(args.fair_lambda))))

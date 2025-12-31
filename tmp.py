@@ -35,7 +35,7 @@ def main():
     parser.add_argument('--save_path', type=str, default='result', help='path to save results')
     parser.add_argument('--dis_metric', type=str, default='ours', help='distance metric')
     parser.add_argument('--FairDD', action='store_true', help='Enable FairDD')
-    parser.add_argument('--fair_lambda', type=float, default=0.0005, help='FairDD lambda parameter')
+    parser.add_argument('--fair_lambda', type=float, default=0, help='FairDD lambda parameter')
 
 
     args = parser.parse_args()
@@ -258,47 +258,7 @@ def main():
 
                         # 4. Calculate Task Fidelity Loss (Using Balanced Target)
                         loss += match_loss(gw_syn, gw_real_balanced, args)
-
-                        # # 5. Calculate Orthogonality/Fairness Constraint
-                        # if len(unique_groups) > 1:
-                        #     ortho_loss = torch.tensor(0.0).to(args.device)
-                        #     groups_list = list(group_grads.keys())
-                            
-                        #     for i in range(len(groups_list)):
-                        #         for j in range(i + 1, len(groups_list)):
-
-                        #             # ... inside the group loops ...
-                        #             g_a = group_grads[groups_list[i]]
-                        #             g_b = group_grads[groups_list[j]]
                                     
-                        #             # Calculate the magnitude (squared L2 norm) of the difference vector first
-                        #             diff_norm_sq = torch.tensor(0.0).to(args.device)
-                        #             for k in range(len(g_a)):
-                        #                 diff = g_a[k] - g_b[k]
-                        #                 diff_norm_sq += torch.sum(diff ** 2)
-                                    
-                        #             # Define a threshold (epsilon). 
-                        #             # If the groups disagree by less than this, ignore it.
-                        #             # This prevents penalizing when gradients are effectively identical.
-                        #             epsilon = 1e-5
-                        #             if diff_norm_sq > epsilon:
-                        #                 dot_prod = torch.tensor(0.0).to(args.device)
-                        #                 for k in range(len(gw_syn)):
-                        #                     diff = g_a[k] - g_b[k]
-                        #                     dot_prod += torch.sum(gw_syn[k] * diff)
-                                        
-                        #                 # Normalize the penalty? (Optional but recommended)
-                        #                 # Dividing by diff_norm_sq makes the penalty purely about DIRECTION, 
-                        #                 # not magnitude of the disagreement.
-                        #                 ortho_loss += (dot_prod ** 2) / (diff_norm_sq + 1e-12)
-                                        
-                                        # Or keep your original un-normalized version:
-                                        # ortho_loss += dot_prod ** 2
-                            
-                            # fair_lambda = 0.0005
-                            # fair_lambda = args.fair_lambda
-                            # loss += fair_lambda * ortho_loss
-
 
 
 
@@ -351,8 +311,8 @@ def main():
 
 
             # save_every = max(1, args.Iteration // 10)
-            # if it % save_every == 0 or it == args.Iteration:
-            if it == args.Iteration: # only record the final results
+            if it % 40 == 0 or it == args.Iteration:
+            # if it == args.Iteration: # only record the final results
                 data_save.append([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 # data_save = ([copy.deepcopy(image_syn.detach().cpu()), copy.deepcopy(label_syn.detach().cpu())])
                 torch.save({'data': data_save, 'accs_all_exps': accs_all_exps, }, os.path.join(args.save_path, 'res_%s_%s_%s_%dip%dlambda%s.pt'%(args.method, args.dataset, args.model, args.ipc,args.Iteration,str(args.fair_lambda))))

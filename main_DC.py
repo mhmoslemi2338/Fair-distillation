@@ -204,8 +204,6 @@ def main():
 
                 ''' update synthetic data '''
                 loss = torch.tensor(0.0).to(args.device)
-                L= 0 
-                L2 = 0
                 for c in range(num_classes):
                     img_real, label, color = get_images(c, args.batch_real)
                     lab_real = torch.ones((img_real.shape[0],), device=args.device, dtype=torch.long) * c
@@ -261,14 +259,6 @@ def main():
 
             loss_avg /= (num_classes*args.outer_loop)
 
-            # L /= (num_classes*args.outer_loop)
-            # L2 /= (num_classes*args.outer_loop)
-            # print(L, L2)
-
-
-
-
-            # if it%10 == 0:
 
 
             print('%s iter = %04d, loss = %.4f' % (get_time(), it, loss_avg))
