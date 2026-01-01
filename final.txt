@@ -291,6 +291,8 @@ mean_Sufficiency: 6.424500 ± 0.326902
 --------------------------------
 
 
+
+
  -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_foreground, ipc = 10 --------- 
 Accuracy: 90.858500 ± 0.244750 
 max_Equalized_Odds: 24.615500 ± 3.684490 
@@ -298,6 +300,15 @@ mean_Equalized_Odds: 10.803000 ± 0.792030
 max_Sufficiency: 17.050000 ± 2.182311
 mean_Sufficiency: 11.180000 ± 0.743384
 --------------------------------
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_foreground, ipc = 50 --------- 
+Accuracy: 92.567500 ± 0.228886 
+max_Equalized_Odds: 20.192000 ± 2.824972 
+mean_Equalized_Odds: 9.393500 ± 0.597430
+max_Sufficiency: 18.158500 ± 2.577579
+mean_Sufficiency: 9.357000 ± 0.570597
+--------------------------------
+
 
 
 
