@@ -290,6 +290,15 @@ max_Sufficiency: 12.497000 ± 1.409458
 mean_Sufficiency: 6.424500 ± 0.326902
 --------------------------------
 
+ -------Model = DC, Method = NoOrtho,  dataset = Colored_MNIST_foreground, ipc = 100 --------- 
+Accuracy: 95.838500 ± 0.124188 
+max_Equalized_Odds: 13.007500 ± 2.136368 
+mean_Equalized_Odds: 6.049500 ± 0.399781
+max_Sufficiency: 13.999000 ± 1.810558
+mean_Sufficiency: 6.761000 ± 0.353411
+--------------------------------
+
+
 
 
 
@@ -309,6 +318,14 @@ max_Sufficiency: 18.158500 ± 2.577579
 mean_Sufficiency: 9.357000 ± 0.570597
 --------------------------------
 
+
+  -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_foreground, ipc = 100 --------- 
+Accuracy: 93.314500 ± 0.211907 
+max_Equalized_Odds: 17.312000 ± 3.501795 
+mean_Equalized_Odds: 9.169500 ± 0.888366
+max_Sufficiency: 14.156000 ± 2.010921
+mean_Sufficiency: 9.265500 ± 0.735639
+--------------------------------
 
 
 
@@ -357,6 +374,18 @@ mean_Equalized_Odds: 7.743000 ± 0.634398
 max_Sufficiency: 12.142000 ± 0.984803
 mean_Sufficiency: 7.840000 ± 0.565022
 --------------------------------
+
+
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_background, ipc = 10 --------- 
+Accuracy: 90.955500 ± 0.268561 
+max_Equalized_Odds: 22.351000 ± 3.118934 
+mean_Equalized_Odds: 10.126500 ± 0.836249
+max_Sufficiency: 17.136000 ± 2.363232
+mean_Sufficiency: 10.396500 ± 0.957639
+--------------------------------
+
+
 
 ------------------------------------------------------------------------------------------------------------
 

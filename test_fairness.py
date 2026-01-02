@@ -73,9 +73,9 @@ def main():
     for dataset in [
                     # "CIFAR10_S_90",
                     # "Colored_FashionMNIST_foreground",
-                    "Colored_FashionMNIST_background",
+                    # "Colored_FashionMNIST_background",
                     "Colored_MNIST_foreground",
-                    # "Colored_MNIST_background",
+                    "Colored_MNIST_background",
                     # "UTKface"
                     ]:
         args.dataset = dataset
