@@ -595,3 +595,51 @@ mean_Sufficiency: 86.062571 ± 2.609296
 
 
 
+
+
+
+
+ -------Model = DC, Method = NoFair,  dataset = BFFHQ, ipc = 10 --------- 
+Accuracy: 60.090000 ± 2.507768 
+max_Equalized_Odds: 43.640000 ± 7.085647 
+mean_Equalized_Odds: 34.480000 ± 4.674783
+max_Sufficiency: 13.871500 ± 4.335633
+mean_Sufficiency: 8.218000 ± 2.474903
+--------------------------------
+
+ -------Model = DC, Method = NoFair,  dataset = BFFHQ, ipc = 50 --------- 
+Accuracy: 63.995000 ± 1.055687 
+max_Equalized_Odds: 51.500000 ± 3.169543 
+mean_Equalized_Odds: 44.930000 ± 2.033986
+max_Sufficiency: 22.351500 ± 2.132478
+mean_Sufficiency: 15.401500 ± 1.051396
+--------------------------------
+
+ -------Model = DC, Method = NoFair,  dataset = BFFHQ, ipc = 100 --------- 
+Accuracy: 65.655000 ± 1.001736 
+max_Equalized_Odds: 55.900000 ± 2.532588 
+mean_Equalized_Odds: 47.970000 ± 1.910262
+max_Sufficiency: 25.114000 ± 2.069416
+mean_Sufficiency: 18.852500 ± 1.275735
+--------------------------------
+
+
+
+dmmmm
+ -------Model = DC, Method = NoOrtho,  dataset = CIFAR10_S_90, ipc = 10 --------- 
+Accuracy: 39.189000 ± 0.418616 
+max_Equalized_Odds: 29.520000 ± 3.055912 
+mean_Equalized_Odds: 8.789500 ± 0.844396
+max_Sufficiency: 14.181000 ± 2.304621
+mean_Sufficiency: 6.741500 ± 0.527212
+--------------------------------
+
+
+
+ -------Model = DC, Method = NoOrtho,  dataset = CIFAR10_S_90, ipc = 10 --------- 
+Accuracy: 39.065500 ± 0.649665 
+max_Equalized_Odds: 26.895000 ± 2.936916 
+mean_Equalized_Odds: 9.148000 ± 0.926194
+max_Sufficiency: 12.870500 ± 2.614375
+mean_Sufficiency: 6.715000 ± 0.803707
+--------------------------------

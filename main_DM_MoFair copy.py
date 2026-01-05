@@ -21,10 +21,10 @@ def main():
     parser.add_argument('--num_exp', type=int, default=1, help='the number of experiments')
     # parser.add_argument('--num_eval', type=int, default=20, help='the number of evaluating randomly initialized models')
     # parser.add_argument('--num_eval', type=int, default=10, help='the number of evaluating randomly initialized models')
-    parser.add_argument('--num_eval', type=int, default=1, help='the number of evaluating randomly initialized models')
+    parser.add_argument('--num_eval', type=int, default=2, help='the number of evaluating randomly initialized models')
     # parser.add_argument('--epoch_eval_train', type=int, default=1000, help='epochs to train a model with synthetic data') # it can be small for speeding up with little performance drop
-    parser.add_argument('--epoch_eval_train', type=int, default=1, help='epochs to train a model with synthetic data') # it can be small for speeding up with little performance drop
-    parser.add_argument('--Iteration', type=int, default=20000, help='training iterations')
+    parser.add_argument('--epoch_eval_train', type=int, default=2000, help='epochs to train a model with synthetic data') # it can be small for speeding up with little performance drop
+    parser.add_argument('--Iteration', type=int, default=100, help='training iterations')
     parser.add_argument('--lr_img', type=float, default=1.0, help='learning rate for updating synthetic images')
     parser.add_argument('--lr_net', type=float, default=0.01, help='learning rate for updating network parameters')
     parser.add_argument('--batch_real', type=int, default=256, help='batch size for real data')
@@ -46,7 +46,7 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = False if args.dsa_strategy in ['none', 'None'] else True
-    args.FairDD = False
+    args.FairDD = True
 
     # if not os.path.exists(args.data_path):
     #     os.mkdir(args.data_path)
@@ -138,7 +138,8 @@ def main():
                     for it_eval in range(args.num_eval):
                         net_eval = get_network(model_eval, channel, args.num_classes, im_size).to(args.device) # get a random model
                         image_syn_eval, label_syn_eval = copy.deepcopy(image_syn.detach()), copy.deepcopy(label_syn.detach()) # avoid any unaware modification
-                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
+                        # _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
+                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds, max_Sufficiency, mean_Sufficiency = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
                         accs.append(acc_test)
                         max_Equalized_Odds_list.append(max_Equalized_Odds)
                         mean_Equalized_Odds_list.append(mean_Equalized_Odds)
@@ -168,6 +169,16 @@ def main():
 
             loss_avg = 0
 
+            def mmd_rbf(x, y, sigma=1.0):
+                # x: [n, d], y: [m, d]
+                xx = torch.cdist(x, x).pow(2)
+                yy = torch.cdist(y, y).pow(2)
+                xy = torch.cdist(x, y).pow(2)
+                kxx = torch.exp(-xx / (2 * sigma**2))
+                kyy = torch.exp(-yy / (2 * sigma**2))
+                kxy = torch.exp(-xy / (2 * sigma**2))
+                return kxx.mean() + kyy.mean() - 2 * kxy.mean()
+
             ''' update synthetic data '''
             loss = torch.tensor(0.0).to(args.device)
             for c in range(args.num_classes):
@@ -182,9 +193,28 @@ def main():
                 output_real = embed(img_real).detach()
                 output_syn = embed(img_syn)
 
+
+                fair_crt = nn.MSELoss().to(args.device)
+
+
+
                 if args.FairDD == True:
-                    for col in torch.unique(color):
-                        loss += torch.sum((torch.mean(output_real[(color == col)], dim=0) - torch.mean(output_syn, dim=0)) ** 2)
+                    # for col in torch.unique(color):
+                    unique_groups = torch.unique(color)
+                    group_means = []
+                    syn_mean = torch.mean(output_syn, dim=0)
+
+                    for g in unique_groups:
+                        mask = (color == g)
+                        if mask.any():
+                            mu_g = embed(img_real[mask]).mean(dim=0)
+                            group_means.append(mu_g)
+
+                    # if len(group_means) > 0:
+                    real_barycenter = torch.stack(group_means, dim=0).mean(dim=0)
+                    loss += torch.sum((syn_mean - real_barycenter.detach()) ** 2)
+
+
                 else:
                     loss += torch.sum((torch.mean(output_real, dim=0) - torch.mean(output_syn, dim=0)) ** 2)
 

@@ -141,7 +141,8 @@ def get_dataset(dataset, data_path):
         im_size = (64, 64)
         num_classes = 2
         print(data_path+"/bffhq")
-        dst_train, dst_test, mean, std = BFFHQ(data_path+"/bffhq")
+        # dst_train, dst_test, mean, std = BFFHQ(data_path+"/bffhq")
+        dst_train, dst_test, mean, std = BFFHQ()
         class_names = [str(c) for c in range(num_classes)]
 
     else:
@@ -612,7 +613,7 @@ def evaluate_synset(it_eval, net, images_train, labels_train, testloader, args, 
     
     if verbose:
         print('%s Evaluate_%02d: epoch = %04d train time = %d s train loss = %.6f train acc = %.2f, test acc = %.2f, max_Equalized_Odds = %.2f, mean_Equalized_Odds = %.2f' % (get_time(), it_eval, Epoch, int(time_train), loss_train, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds))
-        print('max_Sufficiency = %.2f, mean_Sufficiency = %.2f' % (max_Sufficiency, mean_Sufficiency))
+        # print('max_Sufficiency = %.2f, mean_Sufficiency = %.2f' % (max_Sufficiency, mean_Sufficiency))
 
     return net, acc_train, acc_test, max_Equalized_Odds,mean_Equalized_Odds, max_Sufficiency, mean_Sufficiency
 

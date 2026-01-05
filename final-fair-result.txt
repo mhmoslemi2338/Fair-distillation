@@ -377,6 +377,18 @@ mean_Sufficiency: 7.840000 ± 0.565022
 
 
 
+ -------Model = DC, Method = NoOrtho,  dataset = Colored_MNIST_background, ipc = 100 --------- 
+Accuracy: 92.352000 ± 0.189304 
+max_Equalized_Odds: 21.404000 ± 3.564224 
+mean_Equalized_Odds: 9.165500 ± 0.729887
+max_Sufficiency: 21.807000 ± 3.990179
+mean_Sufficiency: 9.635000 ± 1.023824
+--------------------------------
+
+
+
+
+
  -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_background, ipc = 10 --------- 
 Accuracy: 90.955500 ± 0.268561 
 max_Equalized_Odds: 22.351000 ± 3.118934 
@@ -384,6 +396,29 @@ mean_Equalized_Odds: 10.126500 ± 0.836249
 max_Sufficiency: 17.136000 ± 2.363232
 mean_Sufficiency: 10.396500 ± 0.957639
 --------------------------------
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_background, ipc = 50 --------- 
+Accuracy: 91.791000 ± 0.210331 
+max_Equalized_Odds: 20.562000 ± 3.395585 
+mean_Equalized_Odds: 9.897500 ± 0.628020
+max_Sufficiency: 18.036500 ± 2.566726
+mean_Sufficiency: 10.051500 ± 0.599644
+--------------------------------
+
+
+
+
+
+ -------Model = DC, Method = FairDD,  dataset = Colored_MNIST_background, ipc = 100 --------- 
+Accuracy: 92.579000 ± 0.252347 
+max_Equalized_Odds: 41.812500 ± 8.347300 
+mean_Equalized_Odds: 11.840000 ± 1.202726
+max_Sufficiency: 24.726000 ± 5.323860
+mean_Sufficiency: 10.816500 ± 0.841126
+--------------------------------
+
+
+
 
 
 
@@ -468,4 +503,62 @@ max_Equalized_Odds: 28.300000 ± 4.680812
 mean_Equalized_Odds: 22.150000 ± 3.122651
 max_Sufficiency: 32.294500 ± 5.169618
 mean_Sufficiency: 21.969000 ± 2.902859
+--------------------------------
+
+
+------------------------------------------------------------------------------------------------------------
+
+
+ -------Model = DC, Method = FairDD,  dataset = BFFHQ, ipc = 10 --------- 
+Accuracy: 63.075000 ± 2.621235 
+max_Equalized_Odds: 38.520000 ± 6.926009 
+mean_Equalized_Odds: 29.830000 ± 4.825464
+max_Sufficiency: 15.024000 ± 4.484391
+mean_Sufficiency: 8.988000 ± 2.645159
+--------------------------------
+
+ -------Model = DC, Method = FairDD,  dataset = BFFHQ, ipc = 50 --------- 
+Accuracy: 68.960000 ± 1.337685 
+max_Equalized_Odds: 53.460000 ± 4.723177 
+mean_Equalized_Odds: 42.480000 ± 3.373663
+max_Sufficiency: 28.038000 ± 2.183283
+mean_Sufficiency: 18.707000 ± 1.699891
+--------------------------------
+
+ -------Model = DC, Method = FairDD,  dataset = BFFHQ, ipc = 100 --------- 
+Accuracy: 69.850000 ± 1.361066 
+max_Equalized_Odds: 53.440000 ± 4.977389 
+mean_Equalized_Odds: 42.980000 ± 2.674995
+max_Sufficiency: 27.324500 ± 3.096731
+mean_Sufficiency: 20.167000 ± 2.009485
+--------------------------------
+
+
+
+
+
+ -------Model = DC, Method = NoOrtho,  dataset = BFFHQ, ipc = 10 --------- 
+Accuracy: 64.855000 ± 2.657720 
+max_Equalized_Odds: 31.820000 ± 10.375722 
+mean_Equalized_Odds: 20.990000 ± 6.857835
+max_Sufficiency: 12.217000 ± 5.402222
+mean_Sufficiency: 8.018500 ± 3.013917
+--------------------------------
+
+ -------Model = DC, Method = NoOrtho,  dataset = BFFHQ, ipc = 50 --------- 
+Accuracy: 70.050000 ± 1.997373 
+max_Equalized_Odds: 39.020000 ± 6.782890 
+mean_Equalized_Odds: 28.960000 ± 4.457623
+max_Sufficiency: 20.056000 ± 3.959838
+mean_Sufficiency: 12.470500 ± 2.678220
+--------------------------------
+
+
+
+ -------Model = DC, Method = NoOrtho,  dataset = BFFHQ, ipc = 100 --------- 
+Accuracy: 72.015000 ± 1.359513 
+max_Equalized_Odds: 45.440000 ± 4.808992 
+mean_Equalized_Odds: 33.070000 ± 3.205168
+max_Sufficiency: 24.996000 ± 3.467002
+mean_Sufficiency: 15.358000 ± 2.422781
 --------------------------------

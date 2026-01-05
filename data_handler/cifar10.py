@@ -36,7 +36,7 @@ class CIFAR_10S(VisionDataset):
         self.dataset['color'] = np.array(colors)
         mean = tuple(np.mean(self.dataset['image'] / 255., axis=(0, 1, 2)))
         std = tuple(np.std(self.dataset['image'] / 255., axis=(0, 1, 2)))
-        print(mean,std)
+        # print(mean,std)
         self._get_label_list()
         self.labelwise = labelwise
 
@@ -106,7 +106,7 @@ class CIFAR_10S(VisionDataset):
 
         num_total_train_data = int((50000 // num_classes))
         num_skewed_train_data = int((50000 * skewed_ratio) // num_classes)
-        print("skewed_ratio",skewed_ratio)
+        # print("skewed_ratio",skewed_ratio)
         for i, data in enumerate(cifardata):
             img, target = data
 
@@ -141,9 +141,9 @@ class CIFAR_10S(VisionDataset):
                         data_count[1, target] += 1
                     labels[i] = target
 
-        print('<# of Skewed data>',split)
-        print(data_count)
-        print(sum(colors))
+        # print('<# of Skewed data>',split)
+        # print(data_count)
+        # print(sum(colors))
 
         return imgs, labels, colors, data_count
         # return imgs, colors, colors, data_count
@@ -280,6 +280,6 @@ def CIFAR_10s(root, skew_ratio, seed = 0):
         transforms.Normalize(mean, std)])
     train_dataset = CIFAR_10S(root=root, split='train', transform=transform, seed=seed, skewed_ratio=skew_ratio)
     test_dataset = CIFAR_10S(root=root, split='test', transform=transform, seed=seed, skewed_ratio=skew_ratio)
-    print(len(train_dataset), len(test_dataset))
+    # print(len(train_dataset), len(test_dataset))
     return train_dataset, test_dataset, mean, std
 

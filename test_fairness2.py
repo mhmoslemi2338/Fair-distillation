@@ -71,13 +71,13 @@ def main():
     # for name in ['DC','DM','IDC', 'Random','full']:
     
     for dataset in [
-                    # "CIFAR10_S_90",
+                    "CIFAR10_S_90",
                     # "Colored_FashionMNIST_foreground",
                     # "Colored_FashionMNIST_background",
                     # "Colored_MNIST_foreground",
-                    "Colored_MNIST_background",
+                    # "Colored_MNIST_background",
                     # "UTKface",
-                    "BFFHQ",
+                    # "BFFHQ",
                     ]:
         args.dataset = dataset
         channel, im_size, num_classes, class_names, mean, std, dst_train, dst_test, testloader = get_dataset(args.dataset, args.data_path)
@@ -119,15 +119,15 @@ def main():
 
             for name in ['DC']:
                 if name == 'DC':
-                    ITER = 1000
-                for fair_crt in ['FairDD','NoFair','NoOrtho']:
+                    ITER = 20000
+                for fair_crt in ['NoOrtho']:
                     args.testMetric = name
                     # for ipc in [10, 50,100]:
-                    for ipc in [100]:
+                    for ipc in [10]:
 
-                        if entry_exists("/home/mmoslem3/scratch/FairDD/final-fair-result.txt", name, fair_crt, dataset, ipc):
-                            print(f"Skipping existing entry: Model = {name}, Method = {fair_crt},  dataset = {dataset}, ipc = {ipc}")
-                            continue
+                        # if entry_exists("/home/mmoslem3/scratch/FairDD/final-fair-result.txt", name, fair_crt, dataset, ipc):
+                        #     print(f"Skipping existing entry: Model = {name}, Method = {fair_crt},  dataset = {dataset}, ipc = {ipc}")
+                        #     continue
     
 
                         if (name == 'full') and (ipc in [50,100]): continue
@@ -168,28 +168,30 @@ def main():
 
 
 
-                            try: 
-                                try:
-                                    checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
-                                except:
-                                    try:
-                                        checkpoint = torch.load(save_path.replace('1000', '700'), map_location=args.device, weights_only=False)
-                                    except:
-                                        try:
-                                            checkpoint = torch.load(save_path.replace('1000', '600'), map_location=args.device, weights_only=False)
-                                        except:
-                                            try:
-                                                checkpoint = torch.load(save_path.replace('1000', '550'), map_location=args.device, weights_only=False)
-                                            except:
-                                                    checkpoint = torch.load(save_path.replace('1000', '800'), map_location=args.device, weights_only=False)
+                            # try: 
+                            #     try:
+                            #         checkpoint = torch.load(save_path, map_location=args.device, weights_only=False)
+                            #     except:
+                            #         try:
+                            #             checkpoint = torch.load(save_path.replace('1000', '700'), map_location=args.device, weights_only=False)
+                            #         except:
+                            #             try:
+                            #                 checkpoint = torch.load(save_path.replace('1000', '600'), map_location=args.device, weights_only=False)
+                            #             except:
+                            #                 try:
+                            #                     checkpoint = torch.load(save_path.replace('1000', '550'), map_location=args.device, weights_only=False)
+                            #                 except:
+                            #                         checkpoint = torch.load(save_path.replace('1000', '800'), map_location=args.device, weights_only=False)
 
 
 
 
-                                print('\n\n ++++++ Load synthetic data from %s +++++\n\n'%save_path)
-                            except:
-                                print('\n\n  ------ No checkpoint found for %s ----- \n\n'%save_path)
-                                continue
+                            #     print('\n\n ++++++ Load synthetic data from %s +++++\n\n'%save_path)
+                            # except:
+                            #     print('\n\n  ------ No checkpoint found for %s ----- \n\n'%save_path)
+                            #     continue
+
+                            checkpoint = torch.load('/home/mmoslem3/scratch/FairDD/result/res_DM_CIFAR10_S_90_ConvNet_10ipc.pt', map_location=args.device, weights_only=False)
 
                             data_list = checkpoint['data']
 

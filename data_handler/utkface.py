@@ -145,41 +145,6 @@ def UTKFaceDataset(data_dir="./data/UTKFace", transform=None):
             label_idx_dict[i] = set(label_idx_dict[i]) - set(select_idx)
             color_idx_dict[j] = set(color_idx_dict[j]) - set(select_idx)
 
-################################## keep the same amount of samples for each label
-    # new_train_idx = {}
-    # train_idx = {}
-    # each_label_num = {}
-    # each_label_sens_num = {}
-    # min_label_train_num = 1000000
-    # for i in range(len(label_idx_dict)):
-    #     print("label", len(label_idx_dict[i]))
-    #     each_label_num[i] = len(label_idx_dict[i])
-    #     min_label_train_num = min(min_label_train_num, len(label_idx_dict[i]))
-    #     for j in range(len(color_idx_dict)):
-    #         intersection = list(set(label_idx_dict[i]) & set(color_idx_dict[j]))
-    #         train_idx[(i,j)] = intersection
-    #         each_label_sens_num[(i,j)] = len(intersection)
-    #         label_idx_dict[i] = set(label_idx_dict[i]) - set(intersection)
-    #         color_idx_dict[j] = set(color_idx_dict[j]) - set(intersection)
-    #
-    # for i in range(len(label_idx_dict)):
-    #     for j in range(len(color_idx_dict)):
-    #         sample_num = int(min_label_train_num * each_label_sens_num[(i,j)]/each_label_num[i])
-    #         new_train_idx[(i,j)]=  random.sample(train_idx[(i,j)], sample_num)
-    #     each_label_num[i] = len(label_idx_dict[i])
-    # for k,v in train_idx.items():
-    #     print(k, len(v))
-    #
-    # for k,v in new_train_idx.items():
-    #     print('new', k, len(v))
-    # for i in range(len(label_idx_dict)):
-    #     print("label", len(label_idx_dict[i]))
-    #     min_label_train_num = min(min_label_train_num, len(label_idx_dict[i]))
-    #
-    # new_train_idx = np.concatenate([np.array(v) for k, v in new_train_idx.items()])
-    # new_train_idx = new_train_idx.astype(int)
-
-
     train_idx = {}
     for i in range(len(label_idx_dict)):
         for j in range(len(color_idx_dict)):
