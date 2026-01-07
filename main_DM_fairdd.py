@@ -46,7 +46,7 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = False if args.dsa_strategy in ['none', 'None'] else True
-    args.FairDD = False
+    args.FairDD = True
 
     # if not os.path.exists(args.data_path):
     #     os.mkdir(args.data_path)
@@ -54,7 +54,7 @@ def main():
     if not os.path.exists(args.save_path):
         os.mkdir(args.save_path)
 
-    eval_it_pool = np.arange(0, args.Iteration+1, 2000).tolist() if args.eval_mode == 'S' or args.eval_mode == 'SS' else [args.Iteration] # The list of iterations when we evaluate models and record results.
+    # eval_it_pool = np.arange(0, args.Iteration+1, 2000).tolist() if args.eval_mode == 'S' or args.eval_mode == 'SS' else [args.Iteration] # The list of iterations when we evaluate models and record results.
     # eval_it_pool = [0,20000]
     eval_it_pool = [args.Iteration]
     print('eval_it_pool: ', eval_it_pool)
@@ -127,7 +127,7 @@ def main():
             ''' Evaluate synthetic data '''
             if it in eval_it_pool:
                 for model_eval in model_eval_pool:
-                    print('-------------------------\nEvaluation\nmodel_train = %s, model_eval = %s, iteration = %d'%(args.model, model_eval, it))
+                    # print('-------------------------\nEvaluation\nmodel_train = %s, model_eval = %s, iteration = %d'%(args.model, model_eval, it))
 
                     # print('DSA augmentation strategy: \n', args.dsa_strategy)
                     # print('DSA augmentation parameters: \n', args.dsa_param.__dict__)
@@ -138,7 +138,7 @@ def main():
                     for it_eval in range(args.num_eval):
                         net_eval = get_network(model_eval, channel, args.num_classes, im_size).to(args.device) # get a random model
                         image_syn_eval, label_syn_eval = copy.deepcopy(image_syn.detach()), copy.deepcopy(label_syn.detach()) # avoid any unaware modification
-                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds,tmp1,tmp2 = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
+                        _, acc_train, acc_test, max_Equalized_Odds, mean_Equalized_Odds,a,b = evaluate_synset(it_eval, net_eval, image_syn_eval, label_syn_eval, testloader, args)
                         accs.append(acc_test)
                         max_Equalized_Odds_list.append(max_Equalized_Odds)
                         mean_Equalized_Odds_list.append(mean_Equalized_Odds)
@@ -196,7 +196,7 @@ def main():
 
             loss_avg /= (args.num_classes)
 
-            if it%1000 == 0:
+            if it%500 == 0:
                 print('%s iter = %05d, loss = %.4f' % (get_time(), it, loss_avg))
 
             if it == args.Iteration: # only record the final results

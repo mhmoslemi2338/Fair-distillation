@@ -22,7 +22,7 @@ def main():
     parser.add_argument('--num_exp', type=int, default=1, help='the number of experiments')
     # parser.add_argument('--num_eval', type=int, default=20, help='the number of evaluating randomly initialized models')
     # parser.add_argument('--num_eval', type=int, default=10, help='the number of evaluating randomly initialized models')
-    parser.add_argument('--num_eval', type=int, default=10, help='the number of evaluating randomly initialized models')
+    parser.add_argument('--num_eval', type=int, default=5, help='the number of evaluating randomly initialized models')
     parser.add_argument('--epoch_eval_train', type=int, default=1000, help='epochs to train a model with synthetic data') # it can be small for speeding up with little performance drop
     parser.add_argument('--Iteration', type=int, default=100, help='training iterations')
     parser.add_argument('--lr_img', type=float, default=1.0, help='learning rate for updating synthetic images')
@@ -46,7 +46,7 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     args.dsa_param = ParamDiffAug()
     args.dsa = False if args.dsa_strategy in ['none', 'None'] else True
-    args.FairDD = True
+
 
 
     if not os.path.exists(args.save_path):
@@ -174,33 +174,32 @@ def main():
                     img_syn = DiffAugment(img_syn, args.dsa_strategy, seed=seed, param=args.dsa_param)
 
 
+            
+                output_real = embed(img_real).detach()
+                output_syn = embed(img_syn)
+
+
+                unique_groups = torch.unique(color_all)
+                group_means = []
+                syn_mean = torch.mean(output_syn, dim=0)
+
                 
-                if True:
+                for g in unique_groups:
+                    mask = (color == g)
+                    if mask.sum().item() == 0:
+                        continue  # skip missing group
 
-                    output_real = embed(img_real).detach()
-                    output_syn = embed(img_syn)
+                    mu_g = embed(img_real[mask])
+                    mu_g = torch.mean(mu_g, dim=0)
+                    group_means.append(mu_g)
 
-
-
-
-
-                    unique_groups = torch.unique(color_all)
-                    group_means = []
-                    syn_mean = torch.mean(output_syn, dim=0)
-
-                    
-                    for g in unique_groups:
-                        mask = (color == g)
-                        mu_g = embed(img_real[mask])
-                        mu_g = torch.mean(mu_g, dim=0)
-                        group_means.append(mu_g)
-
+                if len(group_means) == 0:
+                    pass
+                else:
                     real_barycenter = torch.mean(torch.stack(group_means, dim=0), dim=0)
 
                     L = real_barycenter - torch.mean(output_syn, dim=0)
-
                     loss += torch.sum(L.abs())
-                    
 
 
 
@@ -212,7 +211,7 @@ def main():
 
             loss_avg /= (args.num_classes)
 
-            if it%50 == 0:
+            if it%500 == 0:
                 print('%s iter = %05d, loss = %.4f' % (get_time(), it, loss_avg))
 
             if it == args.Iteration: # only record the final results
