@@ -68,15 +68,12 @@ def main():
                     # "Colored_FashionMNIST_foreground",
                     # "Colored_FashionMNIST_background",
                     # "Colored_MNIST_foreground",
-                    "Colored_MNIST_background",
-                    # "UTKface",
-                    'BFFHQ'
-
+                    # "Colored_MNIST_background",
+                    "UTKface"
                     ]:
         args.dataset = dataset
-        for ipc in [50,100]:
+        for ipc in [100]:
             args.ipc = ipc
-            if dataset =='BFFHQ' and ipc !=100: continue
 
 
             if not torch.cuda.is_available():

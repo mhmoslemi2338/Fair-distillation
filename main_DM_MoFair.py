@@ -199,7 +199,7 @@ def main():
                     real_barycenter = torch.mean(torch.stack(group_means, dim=0), dim=0)
 
                     L = real_barycenter - torch.mean(output_syn, dim=0)
-                    loss += torch.sum(L.abs())
+                    loss += torch.sum(L.abs()) + 0.2* torch.sum(L.pow(4))
 
 
 

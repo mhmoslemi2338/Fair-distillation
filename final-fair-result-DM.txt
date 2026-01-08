@@ -372,6 +372,24 @@ max_Sufficiency: 9.377500 ± 1.184457
 mean_Sufficiency: 6.812000 ± 0.549214
 --------------------------------
 
+ -------Model = DM, Method = NoOrtho,  dataset = Colored_MNIST_background, ipc = 50 --------- 
+Accuracy: 97.016000 ± 0.103315 
+max_Equalized_Odds: 9.108000 ± 1.275526 
+mean_Equalized_Odds: 4.619000 ± 0.259440
+max_Sufficiency: 7.076000 ± 0.725785
+mean_Sufficiency: 4.754500 ± 0.207545
+--------------------------------
+
+
+
+ -------Model = DM, Method = NoOrtho,  dataset = Colored_MNIST_background, ipc = 100 --------- 
+Accuracy: 97.556500 ± 0.082962 
+max_Equalized_Odds: 7.944500 ± 1.061496 
+mean_Equalized_Odds: 4.569500 ± 0.310668
+max_Sufficiency: 7.912000 ± 1.094091
+mean_Sufficiency: 4.783000 ± 0.248558
+--------------------------------
+
 
 
  -------Model = DM, Method = NoFair,  dataset = Colored_MNIST_background, ipc = 10 --------- 
@@ -417,6 +435,16 @@ max_Sufficiency: 29.156500 ± 2.635148
 mean_Sufficiency: 24.548500 ± 1.576516
 --------------------------------
 
+ -------Model = DM, Method = FairDD,  dataset = UTKface, ipc = 100 --------- 
+Accuracy: 76.078500 ± 0.395705 
+max_Equalized_Odds: 30.850000 ± 1.796524 
+mean_Equalized_Odds: 21.049000 ± 1.509175
+max_Sufficiency: 29.195000 ± 1.937174
+mean_Sufficiency: 20.775500 ± 1.518405
+--------------------------------
+
+
+
 
 
 
@@ -435,6 +463,43 @@ mean_Equalized_Odds: 20.333500 ± 1.852477
 max_Sufficiency: 26.928500 ± 2.807754
 mean_Sufficiency: 22.615500 ± 1.480461
 --------------------------------
+
+ -------Model = DM, Method = NoOrtho,  dataset = UTKface, ipc = 100 --------- 
+Accuracy: 76.579500 ± 0.546941 
+max_Equalized_Odds: 30.150000 ± 2.242209 
+mean_Equalized_Odds: 19.583500 ± 1.530752
+max_Sufficiency: 30.001000 ± 2.352297
+mean_Sufficiency: 20.026500 ± 1.640967
+--------------------------------
+
+
+
+
+ -------Model = DM, Method = NoFair,  dataset = UTKface, ipc = 10 --------- 
+Accuracy: 66.659000 ± 0.810986 
+max_Equalized_Odds: 52.650000 ± 4.162631 
+mean_Equalized_Odds: 31.266000 ± 1.892978
+max_Sufficiency: 26.108000 ± 3.264959
+mean_Sufficiency: 20.604500 ± 1.549756
+--------------------------------
+
+ -------Model = DM, Method = NoFair,  dataset = UTKface, ipc = 50 --------- 
+Accuracy: 72.616000 ± 0.587694 
+max_Equalized_Odds: 50.550000 ± 2.268810 
+mean_Equalized_Odds: 30.916500 ± 1.455652
+max_Sufficiency: 30.654000 ± 1.748043
+mean_Sufficiency: 22.981500 ± 1.300870
+--------------------------------
+ 
+ -------Model = DM, Method = NoFair,  dataset = UTKface, ipc = 100 --------- 
+Accuracy: 73.487500 ± 0.806417 
+max_Equalized_Odds: 47.350000 ± 2.515452 
+mean_Equalized_Odds: 31.350000 ± 1.716863
+max_Sufficiency: 26.987000 ± 2.374631
+mean_Sufficiency: 21.809000 ± 1.139649
+--------------------------------
+
+
 
 ============================================================================================================
 
@@ -456,6 +521,14 @@ max_Sufficiency: 15.160000 ± 1.710535
 mean_Sufficiency: 9.463500 ± 0.822017
 --------------------------------
 
+ -------Model = DM, Method = FairDD,  dataset = BFFHQ, ipc = 100 --------- 
+Accuracy: 73.665000 ± 0.652897 
+max_Equalized_Odds: 24.120000 ± 1.914576 
+mean_Equalized_Odds: 20.250000 ± 1.505822
+max_Sufficiency: 13.437000 ± 1.512125
+mean_Sufficiency: 9.910000 ± 0.765957
+--------------------------------
+
 
 
  -------Model = DM, Method = NoOrtho,  dataset = BFFHQ, ipc = 10 --------- 
@@ -473,3 +546,41 @@ mean_Equalized_Odds: 7.770000 ± 1.406094
 max_Sufficiency: 9.302500 ± 1.717017
 mean_Sufficiency: 5.687500 ± 1.430772
 --------------------------------
+
+ -------Model = DM, Method = NoOrtho,  dataset = BFFHQ, ipc = 100 --------- 
+Accuracy: 73.810000 ± 1.040625 
+max_Equalized_Odds: 9.940000 ± 2.505274 
+mean_Equalized_Odds: 6.260000 ± 1.469830
+max_Sufficiency: 7.163500 ± 1.974754
+mean_Sufficiency: 4.364500 ± 1.175570
+--------------------------------
+
+
+
+
+
+ -------Model = DM, Method = NoFair,  dataset = BFFHQ, ipc = 10 --------- 
+Accuracy: 64.650000 ± 0.846463 
+max_Equalized_Odds: 43.360000 ± 2.285257 
+mean_Equalized_Odds: 35.020000 ± 1.840543
+max_Sufficiency: 19.369500 ± 1.341710
+mean_Sufficiency: 11.209000 ± 1.219868
+--------------------------------
+
+ -------Model = DM, Method = NoFair,  dataset = BFFHQ, ipc = 50 --------- 
+Accuracy: 63.115000 ± 0.718523 
+max_Equalized_Odds: 59.580000 ± 1.865369 
+mean_Equalized_Odds: 51.850000 ± 1.305182
+max_Sufficiency: 27.143000 ± 1.520273
+mean_Sufficiency: 18.140000 ± 0.990434
+--------------------------------
+
+ -------Model = DM, Method = NoFair,  dataset = BFFHQ, ipc = 100 --------- 
+Accuracy: 65.165000 ± 0.651364 
+max_Equalized_Odds: 63.420000 ± 1.703995 
+mean_Equalized_Odds: 54.330000 ± 1.437046
+max_Sufficiency: 31.267500 ± 1.578964
+mean_Sufficiency: 22.486000 ± 1.111973
+--------------------------------
+
+

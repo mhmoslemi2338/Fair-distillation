@@ -623,3 +623,21 @@ mean_Sufficiency: 20.139500 ± 1.599089
 
 
 
+
+
+ -------Model = Full,  dataset = UTKface --------- 
+Accuracy: 83.302000 ± 0.134670 
+max_Equalized_Odds: 43.600000 ± 0.489898 
+mean_Equalized_Odds: 21.132000 ± 0.581116
+max_Sufficiency: 25.602000 ± 2.045516
+mean_Sufficiency: 11.900000 ± 0.738729
+--------------------------------
+
+
+ -------Model = Full,  dataset = BFFHQ --------- 
+Accuracy: 72.660000 ± 0.307246 
+max_Equalized_Odds: 64.000000 ± 1.264911 
+mean_Equalized_Odds: 53.720000 ± 0.499600
+max_Sufficiency: 38.988000 ± 0.536522
+mean_Sufficiency: 33.744000 ± 0.473227
+--------------------------------

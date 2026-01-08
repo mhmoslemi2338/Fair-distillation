@@ -30,12 +30,12 @@ def build_checkpoint_candidates(results_root, name, fair_crt, dataset, ipc):
     if fair_crt == "FairDD":
         dir1 = os.path.join(base, f"FairDD_{name}_{dataset}_ipc{ipc}")
         file1 = os.path.join(dir1, f"res_{name}_{dataset}_ConvNet_{ipc}ip1000.pt")
-        return [file1, file1.replace("1000", "700"), file1.replace("1000", "600"), file1.replace("1000", "550")]
+        return [file1, file1.replace("1000", "700"), file1.replace("1000", "600"), file1.replace("1000", "550"),file1.replace("1000", "800")]
 
     if fair_crt == "NoOrtho":
         dir1 = os.path.join(base, f"Fair_NoOrtho_{name}_{dataset}_ipc{ipc}")
         file1 = os.path.join(dir1, f"res_{name}_{dataset}_ConvNet_{ipc}ip1000.pt")
-        return [file1, file1.replace("1000", "700"), file1.replace("1000", "600"), file1.replace("1000", "550")]
+        return [file1, file1.replace("1000", "700"), file1.replace("1000", "600"), file1.replace("1000", "550"),file1.replace("1000", "800")]
 
     if fair_crt == "NoFair":
         dir1 = os.path.join(base, f"{name}_{dataset}_ipc{ipc}")
